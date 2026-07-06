@@ -79,7 +79,7 @@
                         <id>default-cli</id>
                         <configuration>
                             <mainClass>
-                                ups.bdd.ry_rental_car.ry_rentalcar/ups.bdd.ry_rental_car.ry_rentalcar.HelloApplication
+                                ups.bdd.ry_rental_car.ry_rentalcar/ups.bdd.ry_rental_car.ry_rentalcar.Main
                             </mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>

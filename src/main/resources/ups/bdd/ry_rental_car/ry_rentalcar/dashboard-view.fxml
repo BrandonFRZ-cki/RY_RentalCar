@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      spacing="30"
+      alignment="TOP_CENTER"
+      stylesheets="@styles.css">
+
+    <padding>
+        <Insets top="60" right="40" bottom="40" left="40"/>
+    </padding>
+
+    <HBox spacing="50" alignment="CENTER">
+        <VBox styleClass="card-green" prefWidth="240" prefHeight="130">
+            <Label text="Vehículos Disponibles" styleClass="card-title"/>
+            <Label text="12" styleClass="card-number"/>
+        </VBox>
+
+        <VBox styleClass="card-yellow" prefWidth="240" prefHeight="130">
+            <Label text="Contratos Activos" styleClass="card-title"/>
+            <Label text="5" styleClass="card-number"/>
+        </VBox>
+
+        <VBox styleClass="card-blue" prefWidth="240" prefHeight="130">
+            <Label text="Reservas del Día" styleClass="card-title"/>
+            <Label text="3" styleClass="card-number"/>
+        </VBox>
+    </HBox>
+
+</VBox>

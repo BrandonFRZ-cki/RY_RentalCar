@@ -1,0 +1,161 @@
+/* ===== Colores de marca R&Y Rental Car =====
+   Verde petróleo profundo: #1b2d2c
+   Dorado arena suave:      #d4c9ad
+*/
+
+.root {
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* --- Barra lateral (menú) --- */
+.sidebar {
+    -fx-background-color: #1b2d2c;
+}
+
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-pref-width: 200px;
+    -fx-padding: 12 20 12 20;
+    -fx-cursor: hand;
+    -fx-background-radius: 0;
+}
+
+.nav-button:hover {
+    -fx-background-color: #2c433f;
+}
+
+.nav-button:pressed, .nav-button-active {
+    -fx-background-color: #3d5852;
+}
+
+/* --- Encabezado --- */
+.header-bar {
+    -fx-background-color: white;
+    -fx-padding: 12 20 12 20;
+    -fx-border-color: transparent transparent #e0ddd2 transparent;
+}
+
+.logo-text {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1b2d2c;
+}
+
+.logo-chip {
+    -fx-background-color: #d4c9ad;
+    -fx-background-radius: 6;
+    -fx-padding: 6 10 6 10;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1b2d2c;
+}
+
+/* --- Botones --- */
+.btn-dark {
+    -fx-background-color: #1b2d2c;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-padding: 8 22 8 22;
+    -fx-cursor: hand;
+}
+
+.btn-dark:hover {
+    -fx-background-color: #2c433f;
+}
+
+.btn-outline {
+    -fx-background-color: white;
+    -fx-text-fill: #1b2d2c;
+    -fx-border-color: #1b2d2c;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 8 22 8 22;
+    -fx-cursor: hand;
+}
+
+.btn-danger {
+    -fx-background-color: #a32d2d;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-padding: 8 22 8 22;
+    -fx-cursor: hand;
+}
+
+/* --- Tarjetas (búsqueda/tabla y formulario) --- */
+.table-card {
+    -fx-background-color: white;
+    -fx-border-color: #1b2d2c;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 15;
+}
+
+.form-card {
+    -fx-background-color: white;
+    -fx-border-color: #d4c9ad;
+    -fx-border-width: 2;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 20;
+}
+
+.form-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1b2d2c;
+}
+
+.field-label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #1b2d2c;
+}
+
+/* --- Tarjetas del dashboard --- */
+.card-green  { -fx-background-color: #95bfa0; -fx-background-radius: 10; -fx-padding: 20; }
+.card-yellow { -fx-background-color: #f7dd85; -fx-background-radius: 10; -fx-padding: 20; }
+.card-blue   { -fx-background-color: #a9c6e6; -fx-background-radius: 10; -fx-padding: 20; }
+
+.card-title  { -fx-font-style: italic; -fx-font-weight: bold; -fx-text-fill: #1b2d2c; }
+.card-number { -fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1b2d2c; }
+
+/* --- Login --- */
+.login-panel {
+    -fx-background-color: #d4c9ad;
+}
+
+.error-text {
+    -fx-text-fill: #a32d2d;
+    -fx-font-size: 12px;
+}
+.header-bar {
+    -fx-background-color: white;
+    -fx-padding: 12 20 12 20;
+    -fx-border-color: transparent transparent #e0ddd2 transparent;
+}
+
+.login-panel {
+    -fx-background-color: #d4c9ad;
+}
+
+.sidebar {
+    -fx-background-color: #1b2d2c;
+}
+
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-alignment: CENTER_LEFT;
+    -fx-pref-width: 230px;
+    -fx-padding: 18 30 18 30;
+    -fx-cursor: hand;
+}
+
+.nav-button:hover {
+    -fx-background-color: #3d5852;
+}
