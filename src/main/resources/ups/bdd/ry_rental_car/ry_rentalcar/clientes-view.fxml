@@ -1,12 +1,111 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
-      alignment="CENTER">
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="ups.bdd.ry_rental_car.ry_rentalcar.controllers.ClientesController"
+            stylesheets="@styles.css">
 
-    <Label text="Vista de Clientes" style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
+    <HBox spacing="45"
+          AnchorPane.topAnchor="55"
+          AnchorPane.leftAnchor="65"
+          AnchorPane.rightAnchor="65">
 
-</VBox>
+        <!-- Tabla y buscador -->
+        <VBox spacing="20"
+              prefWidth="430"
+              prefHeight="475"
+              styleClass="table-card">
+
+            <HBox spacing="15">
+                <TextField fx:id="txtBuscar"
+                           promptText="Buscar Clientes"
+                           prefWidth="310"
+                           prefHeight="40"
+                           styleClass="search-input"/>
+
+                <Button text="🔎"
+                        prefWidth="48"
+                        prefHeight="40"
+                        styleClass="btn-dark"/>
+            </HBox>
+
+            <TableView fx:id="tblClientes"
+                       prefWidth="400"
+                       prefHeight="250">
+
+                <columns>
+                    <TableColumn fx:id="colCedula" text="Cédula" prefWidth="100"/>
+                    <TableColumn fx:id="colNombre" text="Nombre" prefWidth="120"/>
+                    <TableColumn fx:id="colTelefono" text="Teléfono" prefWidth="100"/>
+                    <TableColumn fx:id="colEstado" text="Estado" prefWidth="80"/>
+                </columns>
+
+            </TableView>
+        </VBox>
+
+        <!-- Formulario -->
+        <VBox spacing="10"
+              prefWidth="430"
+              prefHeight="475"
+              styleClass="form-card">
+
+            <Label text="Datos del Cliente"
+                   styleClass="form-title"/>
+
+            <HBox spacing="25">
+                <VBox spacing="5">
+                    <Label text="Cédula:" styleClass="field-label"/>
+                    <TextField fx:id="txtCedula" prefWidth="175" prefHeight="34"/>
+                </VBox>
+
+                <VBox spacing="5">
+                    <Label text="Teléfono:" styleClass="field-label"/>
+                    <TextField fx:id="txtTelefono" prefWidth="175" prefHeight="34"/>
+                </VBox>
+            </HBox>
+
+            <Label text="Nombres:" styleClass="field-label"/>
+            <TextField fx:id="txtNombres" prefHeight="34"/>
+
+            <Label text="Apellidos:" styleClass="field-label"/>
+            <TextField fx:id="txtApellidos" prefHeight="34"/>
+
+            <Label text="Correo:" styleClass="field-label"/>
+            <TextField fx:id="txtCorreo" prefHeight="34"/>
+
+            <Label fx:id="lblMensaje" styleClass="error-text"/>
+
+            <HBox spacing="15" alignment="CENTER">
+                <Button text="Guardar"
+                        styleClass="btn-dark"
+                        prefWidth="145"
+                        onAction="#guardarCliente"/>
+
+                <Button text="Actualizar"
+                        styleClass="btn-dark"
+                        prefWidth="145"
+                        onAction="#actualizarCliente"/>
+            </HBox>
+
+            <HBox alignment="CENTER">
+                <Button text="Desactivar"
+                        styleClass="btn-danger"
+                        prefWidth="170"
+                        onAction="#desactivarCliente"/>
+            </HBox>
+
+        </VBox>
+
+    </HBox>
+
+</AnchorPane>

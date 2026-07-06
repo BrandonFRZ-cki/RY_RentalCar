@@ -159,3 +159,96 @@
 .nav-button:hover {
     -fx-background-color: #3d5852;
 }
+.search-input {
+    -fx-background-color: white;
+    -fx-border-color: #1b2d2c;
+    -fx-border-width: 2;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-font-size: 15px;
+}
+
+.table-view {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #1b2d2c;
+}
+
+.table-view .column-header {
+    -fx-background-color: #1b2d2c;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.table-row-cell {
+    -fx-background-color: white;
+    -fx-border-color: transparent transparent #1b2d2c transparent;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: #d4c9ad;
+}
+
+.text-field {
+    -fx-background-color: white;
+    -fx-border-color: #d4c9ad;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+/* ===== Corrección visual de tablas ===== */
+
+.table-view {
+    -fx-background-color: white;
+    -fx-border-color: transparent;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #1b2d2c;
+}
+
+.table-view .column-header {
+    -fx-background-color: #1b2d2c;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+
+.table-row-cell {
+    -fx-background-color: white;
+    -fx-border-color: transparent transparent #1b2d2c transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.table-row-cell:odd {
+    -fx-background-color: #f8f8f8;
+}
+
+.table-row-cell:even {
+    -fx-background-color: white;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: #d4c9ad;
+}
+
+/* Esta parte arregla el texto invisible */
+.table-cell {
+    -fx-text-fill: #1b2d2c;
+    -fx-font-size: 13px;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: #1b2d2c;
+    -fx-font-weight: bold;
+}
