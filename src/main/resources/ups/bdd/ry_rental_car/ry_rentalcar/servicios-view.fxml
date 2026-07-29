@@ -10,6 +10,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.CheckBox?>
 
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
@@ -70,6 +71,8 @@
 
             <Label text="Precio:" styleClass="field-label"/>
             <TextField fx:id="txtPrecio" prefWidth="180" prefHeight="36"/>
+
+            <CheckBox fx:id="chkTieneIva" text="¿Aplica IVA?" styleClass="field-label"/>
 
             <Label text="Estado:" styleClass="field-label"/>
             <ComboBox fx:id="cmbEstado" prefWidth="220" prefHeight="36"/>

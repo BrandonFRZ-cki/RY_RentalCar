@@ -8,17 +8,20 @@ public class Vehiculo {
     private String tipo;
     private int anio;
     private String matricula;
+    private int capacidadPasajeros;
     private double precioDia;
     private String estado;
 
     public Vehiculo(int codigo, String marca, String modelo, String tipo,
-                    int anio, String matricula, double precioDia, String estado) {
+                    int anio, String matricula, int capacidadPasajeros,
+                    double precioDia, String estado) {
         this.codigo = codigo;
         this.marca = marca;
         this.modelo = modelo;
         this.tipo = tipo;
         this.anio = anio;
         this.matricula = matricula;
+        this.capacidadPasajeros = capacidadPasajeros;
         this.precioDia = precioDia;
         this.estado = estado;
     }
@@ -49,6 +52,10 @@ public class Vehiculo {
 
     public String getMatricula() {
         return matricula;
+    }
+
+    public int getCapacidadPasajeros() {
+        return capacidadPasajeros;
     }
 
     public double getPrecioDia() {
@@ -83,6 +90,10 @@ public class Vehiculo {
         this.matricula = matricula;
     }
 
+    public void setCapacidadPasajeros(int capacidadPasajeros) {
+        this.capacidadPasajeros = capacidadPasajeros;
+    }
+
     public void setPrecioDia(double precioDia) {
         this.precioDia = precioDia;
     }
@@ -90,6 +101,7 @@ public class Vehiculo {
     public void setEstado(String estado) {
         this.estado = estado;
     }
+
     @Override
     public String toString() {
         return getMarcaModelo() + " - " + matricula;

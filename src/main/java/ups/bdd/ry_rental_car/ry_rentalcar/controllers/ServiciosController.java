@@ -1,10 +1,14 @@
 package ups.bdd.ry_rental_car.ry_rentalcar.controllers;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.control.CheckBox;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import ups.bdd.ry_rental_car.ry_rentalcar.data.DataStore;
+import ups.bdd.ry_rental_car.ry_rentalcar.data.repository.ServicioRepository;
 import ups.bdd.ry_rental_car.ry_rentalcar.models.ServicioAdicional;
 
 public class ServiciosController {
@@ -36,6 +40,10 @@ public class ServiciosController {
     @FXML
     private TextField txtPrecio;
 
+    // --- NUEVO: faltaba mapear si el servicio tiene IVA o no (ser_tiene_iva en la BD) ---
+    @FXML
+    private CheckBox chkTieneIva;
+
     @FXML
     private ComboBox<String> cmbEstado;
 
@@ -46,6 +54,10 @@ public class ServiciosController {
 
     private FilteredList<ServicioAdicional> serviciosFiltrados;
 
+
+    private final ServicioRepository servicioRepository = new ServicioRepository();
+    private ObservableList<ServicioAdicional> serviciosData;
+
     @FXML
     public void initialize() {
         colNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
@@ -55,14 +67,75 @@ public class ServiciosController {
 
         cmbEstado.setItems(DataStore.ESTADOS_SERVICIO);
 
-        serviciosFiltrados = new FilteredList<>(DataStore.SERVICIOS, servicio -> true);
+        cargarServiciosDesdeBD();
+
+        txtBuscar.textProperty().addListener((obs, o, n) -> filtrarServicios(n));
+        tblServicios.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> cargarServicioSeleccionado(n));
+    }
+
+    private void cargarServiciosDesdeBD() {
+        serviciosData = FXCollections.observableArrayList(servicioRepository.listarTodos());
+        serviciosFiltrados = new FilteredList<>(serviciosData, s -> true);
         tblServicios.setItems(serviciosFiltrados);
+    }
 
-        txtBuscar.textProperty().addListener((observable, oldValue, newValue) -> filtrarServicios(newValue));
+    @FXML
+    private void guardarServicio() {
+        if (!validarCampos()) return;
 
-        tblServicios.getSelectionModel().selectedItemProperty().addListener(
-                (observable, oldValue, newValue) -> cargarServicioSeleccionado(newValue)
+        boolean guardado = servicioRepository.guardar(
+                txtNombre.getText().trim(),
+                Double.parseDouble(txtPrecio.getText().trim()),
+                chkTieneIva.isSelected()
         );
+
+        if (guardado) {
+            cargarServiciosDesdeBD();
+            limpiarCampos();
+            lblMensaje.setText("Servicio guardado correctamente");
+        } else {
+            lblMensaje.setText("No se pudo guardar el servicio");
+        }
+    }
+
+    @FXML
+    private void actualizarServicio() {
+        if (servicioSeleccionado == null) {
+            lblMensaje.setText("Seleccione un servicio para actualizar");
+            return;
+        }
+        if (!validarCampos()) return;
+
+        boolean actualizado = servicioRepository.actualizar(
+                servicioSeleccionado.getCodigo(),
+                txtNombre.getText().trim(),
+                Double.parseDouble(txtPrecio.getText().trim()),
+                chkTieneIva.isSelected()
+        );
+
+        if (actualizado) {
+            cargarServiciosDesdeBD();
+            limpiarCampos();
+            lblMensaje.setText("Servicio actualizado correctamente");
+        } else {
+            lblMensaje.setText("No se pudo actualizar el servicio");
+        }
+    }
+
+
+    private void cargarServicioSeleccionado(ServicioAdicional servicio) {
+        servicioSeleccionado = servicio;
+
+        if (servicio == null) {
+            return;
+        }
+
+        txtNombre.setText(servicio.getNombre());
+        txtDescripcion.setText(servicio.getDescripcion());
+        txtPrecio.setText(String.valueOf(servicio.getPrecio()));
+        chkTieneIva.setSelected(servicio.tieneIva());
+        cmbEstado.setValue(servicio.getEstado());
+        lblMensaje.setText("");
     }
 
     private void filtrarServicios(String filtro) {
@@ -77,60 +150,6 @@ public class ServiciosController {
                     || servicio.getDescripcion().toLowerCase().contains(texto)
                     || servicio.getEstado().toLowerCase().contains(texto);
         });
-    }
-
-    private void cargarServicioSeleccionado(ServicioAdicional servicio) {
-        servicioSeleccionado = servicio;
-
-        if (servicio == null) {
-            return;
-        }
-
-        txtNombre.setText(servicio.getNombre());
-        txtDescripcion.setText(servicio.getDescripcion());
-        txtPrecio.setText(String.valueOf(servicio.getPrecio()));
-        cmbEstado.setValue(servicio.getEstado());
-        lblMensaje.setText("");
-    }
-
-    @FXML
-    private void guardarServicio() {
-        if (!validarCampos()) {
-            return;
-        }
-
-        ServicioAdicional nuevoServicio = new ServicioAdicional(
-                DataStore.getNextServicioId(),
-                txtNombre.getText().trim(),
-                txtDescripcion.getText().trim(),
-                Double.parseDouble(txtPrecio.getText().trim()),
-                cmbEstado.getValue()
-        );
-
-        DataStore.SERVICIOS.add(nuevoServicio);
-        limpiarCampos();
-        lblMensaje.setText("Servicio guardado correctamente");
-    }
-
-    @FXML
-    private void actualizarServicio() {
-        if (servicioSeleccionado == null) {
-            lblMensaje.setText("Seleccione un servicio para actualizar");
-            return;
-        }
-
-        if (!validarCampos()) {
-            return;
-        }
-
-        servicioSeleccionado.setNombre(txtNombre.getText().trim());
-        servicioSeleccionado.setDescripcion(txtDescripcion.getText().trim());
-        servicioSeleccionado.setPrecio(Double.parseDouble(txtPrecio.getText().trim()));
-        servicioSeleccionado.setEstado(cmbEstado.getValue());
-
-        tblServicios.refresh();
-        limpiarCampos();
-        lblMensaje.setText("Servicio actualizado correctamente");
     }
 
     @FXML
@@ -170,6 +189,7 @@ public class ServiciosController {
         txtNombre.clear();
         txtDescripcion.clear();
         txtPrecio.clear();
+        chkTieneIva.setSelected(false);
         cmbEstado.setValue(null);
 
         tblServicios.getSelectionModel().clearSelection();

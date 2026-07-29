@@ -15,6 +15,7 @@ public class Contrato {
     private double total;
     private String estado;
 
+    /** Constructor original: calcula todo desde la reserva (solo renta, sin servicios). */
     public Contrato(int codigo, String numero, Reserva reserva, String usuario) {
         this.codigo = codigo;
         this.numero = numero;
@@ -25,94 +26,51 @@ public class Contrato {
         calcularValores();
     }
 
+    /** Constructor completo: usa los valores ya calculados/guardados en la BD (incluye servicios). */
+    public Contrato(int codigo, String numero, Reserva reserva, String usuario,
+                    double precioDiario, double subtotal, double iva, double total, String estado) {
+        this.codigo = codigo;
+        this.numero = numero;
+        this.reserva = reserva;
+        this.usuario = usuario;
+        this.precioDiario = precioDiario;
+        this.subtotal = subtotal;
+        this.iva = iva;
+        this.total = total;
+        this.estado = estado;
+    }
+
     private void calcularValores() {
-        LocalDate inicio = LocalDate.parse(reserva.getFechaInicio());
-        LocalDate fin = LocalDate.parse(reserva.getFechaFin());
+        LocalDate inicio = LocalDate.parse(reserva.getFechaInicio().substring(0, 10));
+        LocalDate fin = LocalDate.parse(reserva.getFechaFin().substring(0, 10));
 
         long dias = ChronoUnit.DAYS.between(inicio, fin);
-
-        if (dias <= 0) {
-            dias = 1;
-        }
+        if (dias <= 0) dias = 1;
 
         subtotal = dias * precioDiario;
         iva = subtotal * 0.15;
         total = subtotal + iva;
     }
 
-    public int getCodigo() {
-        return codigo;
-    }
+    public int getCodigo() { return codigo; }
+    public String getNumero() { return numero; }
+    public Reserva getReserva() { return reserva; }
+    public String getUsuario() { return usuario; }
+    public double getPrecioDiario() { return precioDiario; }
+    public double getSubtotal() { return subtotal; }
+    public double getIva() { return iva; }
+    public double getTotal() { return total; }
+    public String getEstado() { return estado; }
+    public String getClienteNombre() { return reserva.getClienteNombre(); }
+    public String getVehiculoTexto() { return reserva.getVehiculoTexto(); }
+    public String getFechaInicio() { return reserva.getFechaInicio(); }
+    public String getFechaFin() { return reserva.getFechaFin(); }
 
-    public String getNumero() {
-        return numero;
-    }
+    public String getTotalTexto() { return "$" + String.format("%.2f", total); }
+    public String getSubtotalTexto() { return "$" + String.format("%.2f", subtotal); }
+    public String getIvaTexto() { return "$" + String.format("%.2f", iva); }
+    public String getPrecioDiarioTexto() { return "$" + String.format("%.2f", precioDiario); }
 
-    public Reserva getReserva() {
-        return reserva;
-    }
-
-    public String getUsuario() {
-        return usuario;
-    }
-
-    public double getPrecioDiario() {
-        return precioDiario;
-    }
-
-    public double getSubtotal() {
-        return subtotal;
-    }
-
-    public double getIva() {
-        return iva;
-    }
-
-    public double getTotal() {
-        return total;
-    }
-
-    public String getEstado() {
-        return estado;
-    }
-
-    public String getClienteNombre() {
-        return reserva.getClienteNombre();
-    }
-
-    public String getVehiculoTexto() {
-        return reserva.getVehiculoTexto();
-    }
-
-    public String getFechaInicio() {
-        return reserva.getFechaInicio();
-    }
-
-    public String getFechaFin() {
-        return reserva.getFechaFin();
-    }
-
-    public String getTotalTexto() {
-        return "$" + String.format("%.2f", total);
-    }
-
-    public String getSubtotalTexto() {
-        return "$" + String.format("%.2f", subtotal);
-    }
-
-    public String getIvaTexto() {
-        return "$" + String.format("%.2f", iva);
-    }
-
-    public String getPrecioDiarioTexto() {
-        return "$" + String.format("%.2f", precioDiario);
-    }
-
-    public void setUsuario(String usuario) {
-        this.usuario = usuario;
-    }
-
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
+    public void setUsuario(String usuario) { this.usuario = usuario; }
+    public void setEstado(String estado) { this.estado = estado; }
 }

@@ -9,6 +9,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Region?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
@@ -20,12 +21,15 @@
     <top>
         <HBox alignment="CENTER_LEFT" spacing="20" styleClass="header-bar">
             <ImageView fitWidth="220" preserveRatio="true">
-                <image>
-                    <Image url="@img/logo.png"/>
-                </image>
+                <image><Image url="@img/logo.png"/></image>
             </ImageView>
 
             <Label fx:id="lblUsuario" text="Admin:"/>
+            <Label fx:id="lblVistaActual" text="Dashboard" style="-fx-font-weight: bold; -fx-font-size: 16px;"/>
+
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <Button text="Cerrar sesión" styleClass="btn-danger" onAction="#cerrarSesion"/>
         </HBox>
     </top>
 
@@ -36,11 +40,11 @@
             </padding>
 
             <Button text="Clientes" styleClass="nav-button" onAction="#mostrarClientes"/>
-            <Button text="Vehículos" styleClass="nav-button" onAction="#mostrarVehiculos"/>
-            <Button text="Servicios" styleClass="nav-button" onAction="#mostrarServicios"/>
+            <Button fx:id="btnVehiculos" text="Vehículos" styleClass="nav-button" onAction="#mostrarVehiculos"/>
+            <Button fx:id="btnServicios" text="Servicios" styleClass="nav-button" onAction="#mostrarServicios"/>
             <Button text="Reservas" styleClass="nav-button" onAction="#mostrarReservas"/>
             <Button text="Contratos" styleClass="nav-button" onAction="#mostrarContratos"/>
-            <Button text="Empleados" styleClass="nav-button" onAction="#mostrarEmpleados"/>
+            <Button fx:id="btnEmpleados" text="Empleados" styleClass="nav-button" onAction="#mostrarEmpleados"/>
         </VBox>
     </left>
 

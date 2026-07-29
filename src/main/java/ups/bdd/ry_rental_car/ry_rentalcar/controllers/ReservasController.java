@@ -1,17 +1,20 @@
 package ups.bdd.ry_rental_car.ry_rentalcar.controllers;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import ups.bdd.ry_rental_car.ry_rentalcar.data.DataStore;
-import ups.bdd.ry_rental_car.ry_rentalcar.models.Cliente;
-import ups.bdd.ry_rental_car.ry_rentalcar.models.Reserva;
-import ups.bdd.ry_rental_car.ry_rentalcar.models.Vehiculo;
+import ups.bdd.ry_rental_car.ry_rentalcar.data.repository.ClienteRepository;
+import ups.bdd.ry_rental_car.ry_rentalcar.data.repository.ReservaRepository;
+import ups.bdd.ry_rental_car.ry_rentalcar.data.repository.VehiculoRepository;
+import ups.bdd.ry_rental_car.ry_rentalcar.models.*;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
-public class ReservasController {
+public class ReservasController implements UsuarioAware {
 
     @FXML private TextField txtBuscar;
     @FXML private TableView<Reserva> tblReservas;
@@ -21,16 +24,38 @@ public class ReservasController {
     @FXML private TableColumn<Reserva, String> colFechaFin;
     @FXML private TableColumn<Reserva, String> colEstado;
 
-    @FXML private ComboBox<Cliente> cmbCliente;
-    @FXML private ComboBox<Vehiculo> cmbVehiculo;
-    @FXML private ComboBox<String> cmbUsuario;
+    @FXML private TextField txtCedulaCliente;
+    @FXML private Label lblClienteEncontrado;
+
+    @FXML private TextField txtPlacaVehiculo;
+    @FXML private Label lblVehiculoEncontrado;
+
+    @FXML private Label lblUsuarioActual;
+
     @FXML private TextField txtFechaInicio;
     @FXML private TextField txtFechaFin;
-    @FXML private ComboBox<String> cmbEstado;
+
+    @FXML private Label lblEstado;
     @FXML private Label lblMensaje;
 
+    private final ClienteRepository clienteRepository = new ClienteRepository();
+    private final VehiculoRepository vehiculoRepository = new VehiculoRepository();
+    private final ReservaRepository reservaRepository = new ReservaRepository();
+
+    private static final DateTimeFormatter FORMATO = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+
+    private UsuarioLogueado usuarioLogueado;
+    private Cliente clienteEncontrado;
+    private Vehiculo vehiculoEncontrado;
     private Reserva reservaSeleccionada;
+    private ObservableList<Reserva> reservasData;
     private FilteredList<Reserva> reservasFiltradas;
+
+    @Override
+    public void setUsuarioLogueado(UsuarioLogueado usuarioLogueado) {
+        this.usuarioLogueado = usuarioLogueado;
+        lblUsuarioActual.setText(usuarioLogueado.getNombreCompleto());
+    }
 
     @FXML
     public void initialize() {
@@ -40,29 +65,57 @@ public class ReservasController {
         colFechaFin.setCellValueFactory(new PropertyValueFactory<>("fechaFin"));
         colEstado.setCellValueFactory(new PropertyValueFactory<>("estado"));
 
-        cmbCliente.setItems(DataStore.CLIENTES);
-        cmbVehiculo.setItems(DataStore.VEHICULOS);
-        cmbUsuario.setItems(DataStore.USUARIOS);
-        cmbEstado.setItems(DataStore.ESTADOS_RESERVA);
+        cargarReservasDesdeBD();
 
-        reservasFiltradas = new FilteredList<>(DataStore.RESERVAS, reserva -> true);
-        tblReservas.setItems(reservasFiltradas);
-
-        txtBuscar.textProperty().addListener((observable, oldValue, newValue) -> filtrarReservas(newValue));
+        txtBuscar.textProperty().addListener((obs, o, n) -> filtrarReservas(n));
+        txtCedulaCliente.textProperty().addListener((obs, o, n) -> buscarClientePorCedula(n));
+        txtPlacaVehiculo.textProperty().addListener((obs, o, n) -> buscarVehiculoPorPlaca(n));
 
         tblReservas.getSelectionModel().selectedItemProperty().addListener(
-                (observable, oldValue, newValue) -> cargarReservaSeleccionada(newValue)
+                (obs, o, n) -> cargarReservaSeleccionada(n)
         );
+
+        lblEstado.setText("Activa");
+    }
+
+    private void cargarReservasDesdeBD() {
+        reservasData = FXCollections.observableArrayList(reservaRepository.listarTodas());
+        reservasFiltradas = new FilteredList<>(reservasData, r -> true);
+        tblReservas.setItems(reservasFiltradas);
+    }
+
+    private void buscarClientePorCedula(String cedula) {
+        if (cedula == null || cedula.isBlank()) {
+            clienteEncontrado = null;
+            lblClienteEncontrado.setText("");
+            return;
+        }
+        clienteEncontrado = clienteRepository.buscarPorCedula(cedula.trim());
+        lblClienteEncontrado.setText(
+                clienteEncontrado != null ? clienteEncontrado.getNombreCompleto() : "Cliente no encontrado"
+        );
+    }
+
+    private void buscarVehiculoPorPlaca(String placa) {
+        if (placa == null || placa.isBlank()) {
+            vehiculoEncontrado = null;
+            lblVehiculoEncontrado.setText("");
+            return;
+        }
+        vehiculoEncontrado = vehiculoRepository.buscarPorPlaca(placa.trim());
+        if (vehiculoEncontrado == null) {
+            lblVehiculoEncontrado.setText("Vehículo no encontrado");
+        } else if (!vehiculoRepository.estaDisponible(vehiculoEncontrado.getEstado())) {
+            lblVehiculoEncontrado.setText(vehiculoEncontrado.getMarcaModelo() + " - NO DISPONIBLE");
+        } else {
+            lblVehiculoEncontrado.setText(vehiculoEncontrado.getMarcaModelo() + " (" + vehiculoEncontrado.getPrecioDiaTexto() + "/día)");
+        }
     }
 
     private void filtrarReservas(String filtro) {
         reservasFiltradas.setPredicate(reserva -> {
-            if (filtro == null || filtro.isBlank()) {
-                return true;
-            }
-
+            if (filtro == null || filtro.isBlank()) return true;
             String texto = filtro.toLowerCase();
-
             return reserva.getClienteNombre().toLowerCase().contains(texto)
                     || reserva.getVehiculoTexto().toLowerCase().contains(texto)
                     || reserva.getEstado().toLowerCase().contains(texto);
@@ -71,62 +124,60 @@ public class ReservasController {
 
     private void cargarReservaSeleccionada(Reserva reserva) {
         reservaSeleccionada = reserva;
+        if (reserva == null) return;
 
-        if (reserva == null) {
-            return;
-        }
-
-        cmbCliente.setValue(reserva.getCliente());
-        cmbVehiculo.setValue(reserva.getVehiculo());
-        cmbUsuario.setValue(reserva.getUsuario());
+        txtCedulaCliente.setText(reserva.getCliente().getCedula());
+        txtPlacaVehiculo.setText(reserva.getVehiculo().getMatricula());
         txtFechaInicio.setText(reserva.getFechaInicio());
         txtFechaFin.setText(reserva.getFechaFin());
-        cmbEstado.setValue(reserva.getEstado());
+        lblEstado.setText(reserva.getEstado());
         lblMensaje.setText("");
     }
 
     @FXML
     private void guardarReserva() {
-        if (!validarCampos()) {
+        if (!validarCampos()) return;
+
+        LocalDateTime inicio = LocalDateTime.parse(txtFechaInicio.getText().trim(), FORMATO);
+        LocalDateTime fin = LocalDateTime.parse(txtFechaFin.getText().trim(), FORMATO);
+
+        if (reservaRepository.tieneCruceDeFechas(vehiculoEncontrado.getCodigo(), inicio, fin)) {
+            lblMensaje.setText("Ese vehículo ya está reservado/alquilado en esas fechas");
             return;
         }
 
-        Reserva nuevaReserva = new Reserva(
-                DataStore.getNextReservaId(),
-                cmbCliente.getValue(),
-                cmbVehiculo.getValue(),
-                cmbUsuario.getValue(),
-                txtFechaInicio.getText().trim(),
-                txtFechaFin.getText().trim(),
-                cmbEstado.getValue()
+        Integer codigo = reservaRepository.crear(
+                clienteEncontrado.getCodigo(),
+                usuarioLogueado.getCodigo(),
+                vehiculoEncontrado.getCodigo(),
+                inicio, fin
         );
 
-        DataStore.RESERVAS.add(nuevaReserva);
+        if (codigo == null) {
+            lblMensaje.setText("No se pudo guardar la reserva");
+            return;
+        }
+
+        cargarReservasDesdeBD();
         limpiarCampos();
-        lblMensaje.setText("Reserva guardada correctamente");
+        lblMensaje.setText("Reserva creada correctamente (estado: Activa)");
     }
 
+    /** No existe "actualizarReserva": se elimina la anterior y se crea una nueva. */
     @FXML
-    private void actualizarReserva() {
+    private void modificarComoNuevaReserva() {
         if (reservaSeleccionada == null) {
-            lblMensaje.setText("Seleccione una reserva para actualizar");
+            lblMensaje.setText("Seleccione la reserva que desea modificar");
             return;
         }
 
-        if (!validarCampos()) {
+        if (!reservaRepository.eliminar(reservaSeleccionada.getCodigo())) {
+            lblMensaje.setText("No se pudo eliminar la reserva anterior (¿ya tiene un contrato?)");
             return;
         }
 
-        reservaSeleccionada.setCliente(cmbCliente.getValue());
-        reservaSeleccionada.setVehiculo(cmbVehiculo.getValue());
-        reservaSeleccionada.setUsuario(cmbUsuario.getValue());
-        reservaSeleccionada.setFechaInicio(txtFechaInicio.getText().trim());
-        reservaSeleccionada.setFechaFin(txtFechaFin.getText().trim());
-        reservaSeleccionada.setEstado(cmbEstado.getValue());
-
-        tblReservas.refresh();
-        limpiarCampos();
-        lblMensaje.setText("Reserva actualizada correctamente");
+        reservaSeleccionada = null;
+        guardarReserva(); // crea la nueva con los datos que quedaron en el formulario
     }
 
     @FXML
@@ -136,71 +187,53 @@ public class ReservasController {
             return;
         }
 
-        reservaSeleccionada.setEstado("Cancelada");
-        tblReservas.refresh();
+        if (!reservaRepository.cancelar(reservaSeleccionada.getCodigo())) {
+            lblMensaje.setText("No se pudo cancelar la reserva");
+            return;
+        }
+
+        cargarReservasDesdeBD();
         limpiarCampos();
         lblMensaje.setText("Reserva cancelada correctamente");
     }
 
-    @FXML
-    private void autorizarReserva() {
-        if (reservaSeleccionada == null) {
-            lblMensaje.setText("Seleccione una reserva para autorizar");
-            return;
-        }
-
-        if (reservaSeleccionada.getEstado().equals("Cancelada")) {
-            lblMensaje.setText("No se puede autorizar una reserva cancelada");
-            return;
-        }
-
-        reservaSeleccionada.setEstado("Autorizada");
-
-        if (!DataStore.existeContratoParaReserva(reservaSeleccionada)) {
-            DataStore.crearContratoDesdeReserva(reservaSeleccionada, cmbUsuario.getValue() == null ? "admin" : cmbUsuario.getValue());
-        }
-
-        tblReservas.refresh();
-        limpiarCampos();
-        lblMensaje.setText("Reserva autorizada y contrato generado");
-    }
-
     private boolean validarCampos() {
-        if (cmbCliente.getValue() == null
-                || cmbVehiculo.getValue() == null
-                || cmbUsuario.getValue() == null
-                || txtFechaInicio.getText().isBlank()
-                || txtFechaFin.getText().isBlank()
-                || cmbEstado.getValue() == null) {
-
-            lblMensaje.setText("Complete todos los campos");
+        if (clienteEncontrado == null) {
+            lblMensaje.setText("Busque un cliente por cédula válido");
             return false;
         }
-
+        if (vehiculoEncontrado == null || !vehiculoRepository.estaDisponible(vehiculoEncontrado.getEstado())) {
+            lblMensaje.setText("Busque un vehículo por placa que esté disponible");
+            return false;
+        }
+        if (txtFechaInicio.getText().isBlank() || txtFechaFin.getText().isBlank()) {
+            lblMensaje.setText("Complete fecha de inicio y fin (formato: 2026-08-10T09:00)");
+            return false;
+        }
         try {
-            LocalDate inicio = LocalDate.parse(txtFechaInicio.getText().trim());
-            LocalDate fin = LocalDate.parse(txtFechaFin.getText().trim());
-
-            if (fin.isBefore(inicio)) {
-                lblMensaje.setText("La fecha final no puede ser menor a la inicial");
+            LocalDateTime inicio = LocalDateTime.parse(txtFechaInicio.getText().trim(), FORMATO);
+            LocalDateTime fin = LocalDateTime.parse(txtFechaFin.getText().trim(), FORMATO);
+            if (!fin.isAfter(inicio)) {
+                lblMensaje.setText("La fecha final debe ser posterior a la inicial");
                 return false;
             }
-
         } catch (Exception e) {
-            lblMensaje.setText("Use formato de fecha: 2026-07-10");
+            lblMensaje.setText("Formato de fecha inválido. Use: 2026-08-10T09:00");
             return false;
         }
-
         return true;
     }
 
     private void limpiarCampos() {
-        cmbCliente.setValue(null);
-        cmbVehiculo.setValue(null);
-        cmbUsuario.setValue(null);
+        txtCedulaCliente.clear();
+        txtPlacaVehiculo.clear();
+        lblClienteEncontrado.setText("");
+        lblVehiculoEncontrado.setText("");
         txtFechaInicio.clear();
         txtFechaFin.clear();
-        cmbEstado.setValue(null);
+        lblEstado.setText("Activa");
+        clienteEncontrado = null;
+        vehiculoEncontrado = null;
 
         tblReservas.getSelectionModel().clearSelection();
         reservaSeleccionada = null;

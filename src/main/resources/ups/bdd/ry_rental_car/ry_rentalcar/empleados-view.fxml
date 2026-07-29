@@ -10,6 +10,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.control.PasswordField?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="ups.bdd.ry_rental_car.ry_rentalcar.controllers.EmpleadosController"
@@ -108,6 +109,24 @@
                         onAction="#desactivarEmpleado"/>
             </HBox>
 
+            <Label text="Crear usuario para este empleado (solo rol Atención al Cliente)"
+                   styleClass="form-title"/>
+
+            <Label text="Nombre de usuario:" styleClass="field-label"/>
+            <TextField fx:id="txtNombreUsuario" prefWidth="260" prefHeight="32"/>
+
+            <Label text="Contraseña:" styleClass="field-label"/>
+            <PasswordField fx:id="txtContraseniaUsuario" prefWidth="260" prefHeight="32"/>
+
+            <Label text="Permiso:" styleClass="field-label"/>
+            <ComboBox fx:id="cmbPermiso" prefWidth="260" prefHeight="32"/>
+            <!-- En el controller puedes llenarlo así en initialize():
+                 cmbPermiso.setItems(FXCollections.observableArrayList("ADMINISTRADOR", "GENERAL")); -->
+
+            <Label fx:id="lblMensajeUsuario" styleClass="error-text"/>
+
+            <Button text="Crear usuario" styleClass="btn-dark" prefWidth="160"
+                    onAction="#crearUsuarioParaEmpleado"/>
         </VBox>
 
     </HBox>

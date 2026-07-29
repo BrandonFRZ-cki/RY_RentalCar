@@ -41,9 +41,9 @@ public class DataStore {
     );
 
     public static final ObservableList<Vehiculo> VEHICULOS = FXCollections.observableArrayList(
-            new Vehiculo(1, "Toyota", "Yaris", "Auto", 2022, "ABC-123", 28.00, "Disponible"),
-            new Vehiculo(2, "KIA", "Sportage", "Jeep", 2023, "ACD-123", 45.00, "Alquilado"),
-            new Vehiculo(3, "Chevrolet", "DMAX", "Camioneta", 2021, "AGB-123", 52.00, "Mantenimiento")
+            new Vehiculo(1, "Toyota", "Yaris", "Auto", 2022, "ABC-123", 5, 28.00, "Disponible"),
+            new Vehiculo(2, "KIA", "Sportage", "Jeep", 2023, "ACD-123", 5, 45.00, "Alquilado"),
+            new Vehiculo(3, "Chevrolet", "DMAX", "Camioneta", 2021, "AGB-123", 5, 52.00, "Mantenimiento")
     );
 
     private static int vehiculoId = 4;
@@ -58,9 +58,9 @@ public class DataStore {
     );
 
     public static final ObservableList<ServicioAdicional> SERVICIOS = FXCollections.observableArrayList(
-            new ServicioAdicional(1, "GPS", "Servicio de rastreo y navegación", 5.00, "Activo"),
-            new ServicioAdicional(2, "Silla para bebé", "Asiento infantil para vehículo", 8.00, "Activo"),
-            new ServicioAdicional(3, "Seguro adicional", "Cobertura adicional para el alquiler", 15.00, "Activo")
+            new ServicioAdicional(1, "GPS", "Servicio de rastreo y navegación", 5.00, true, "Activo"),
+            new ServicioAdicional(2, "Silla para bebé", "Asiento infantil para vehículo", 8.00, true, "Activo"),
+            new ServicioAdicional(3, "Seguro adicional", "Cobertura adicional para el alquiler", 15.00, true, "Activo")
     );
 
     private static int servicioId = 4;

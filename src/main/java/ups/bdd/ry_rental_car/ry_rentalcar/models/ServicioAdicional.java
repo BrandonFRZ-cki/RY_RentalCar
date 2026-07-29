@@ -6,13 +6,16 @@ public class ServicioAdicional {
     private String nombre;
     private String descripcion;
     private double precio;
+    private boolean tieneIva; // <-- NUEVO: faltaba mapear ser_tiene_iva de la BD
     private String estado;
 
-    public ServicioAdicional(int codigo, String nombre, String descripcion, double precio, String estado) {
+    public ServicioAdicional(int codigo, String nombre, String descripcion,
+                             double precio, boolean tieneIva, String estado) {
         this.codigo = codigo;
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.precio = precio;
+        this.tieneIva = tieneIva;
         this.estado = estado;
     }
 
@@ -36,6 +39,10 @@ public class ServicioAdicional {
         return "$" + String.format("%.2f", precio);
     }
 
+    public boolean tieneIva() {
+        return tieneIva;
+    }
+
     public String getEstado() {
         return estado;
     }
@@ -52,7 +59,16 @@ public class ServicioAdicional {
         this.precio = precio;
     }
 
+    public void setTieneIva(boolean tieneIva) {
+        this.tieneIva = tieneIva;
+    }
+
     public void setEstado(String estado) {
         this.estado = estado;
+    }
+
+    @Override
+    public String toString() {
+        return nombre + " (" + getPrecioTexto() + ")";
     }
 }

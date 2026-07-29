@@ -84,6 +84,8 @@
                     <TextField fx:id="txtMatricula" prefWidth="160" prefHeight="32"/>
                 </VBox>
             </HBox>
+            <Label text="Capacidad de pasajeros:" styleClass="field-label"/>
+            <TextField fx:id="txtCapacidad" prefWidth="160" prefHeight="32"/>
 
             <Label text="Precio/día:" styleClass="field-label"/>
             <TextField fx:id="txtPrecioDia" prefWidth="160" prefHeight="32"/>
