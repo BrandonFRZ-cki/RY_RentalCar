@@ -127,4 +127,19 @@ public class ClienteRepository {
             return false;
         }
     }
+
+    public boolean activar(int codigo) {
+        String sql = "UPDATE ALQ_CLIENTES SET cli_estado = 'A' WHERE cli_codigo = ?";
+
+        try (Connection con = Conexion.obtener();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, codigo);
+            return ps.executeUpdate() == 1;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

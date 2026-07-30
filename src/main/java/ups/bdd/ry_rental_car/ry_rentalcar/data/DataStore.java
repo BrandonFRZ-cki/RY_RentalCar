@@ -125,9 +125,8 @@ public class DataStore {
         return contrato;
     }
 
-    public static final ObservableList<String> ROLES_EMPLEADO = FXCollections.observableArrayList(
-            "Administrador", "Vendedor", "Operador"
-    );
+    public static final ObservableList<String> ROLES_EMPLEADO =
+            FXCollections.observableArrayList("Administrativo", "Atención al Cliente");
 
     public static final ObservableList<String> ESTADOS_EMPLEADO = FXCollections.observableArrayList(
             "Activo", "Inactivo"

@@ -11,6 +11,7 @@ import ups.bdd.ry_rental_car.ry_rentalcar.data.repository.VehiculoRepository;
 import ups.bdd.ry_rental_car.ry_rentalcar.models.Marca;
 import ups.bdd.ry_rental_car.ry_rentalcar.models.Modelo;
 import ups.bdd.ry_rental_car.ry_rentalcar.models.Vehiculo;
+import ups.bdd.ry_rental_car.ry_rentalcar.util.Validaciones;
 
 public class VehiculosController {
 
@@ -204,14 +205,42 @@ public class VehiculosController {
             lblMensaje.setText("Complete todos los campos, incluida marca, modelo y tipo");
             return false;
         }
+
+        // veh_matricula VARCHAR2(15)
+        if (!Validaciones.longitudValida(txtMatricula.getText().trim(), 15)) {
+            lblMensaje.setText("La matrícula no puede superar 15 caracteres");
+            return false;
+        }
+
+        int anio, capacidad;
+        double precioDia;
         try {
-            Integer.parseInt(txtAnio.getText().trim());
-            Integer.parseInt(txtCapacidad.getText().trim());
-            Double.parseDouble(txtPrecioDia.getText().trim());
+            anio = Integer.parseInt(txtAnio.getText().trim());
+            capacidad = Integer.parseInt(txtCapacidad.getText().trim());
+            precioDia = Double.parseDouble(txtPrecioDia.getText().trim());
         } catch (NumberFormatException e) {
             lblMensaje.setText("Año, capacidad y precio deben ser numéricos");
             return false;
         }
+
+        // veh_anio NUMBER(4): máximo 4 dígitos
+        if (anio < 1900 || anio > 9999) {
+            lblMensaje.setText("El año debe tener un valor válido (ej. 2020)");
+            return false;
+        }
+
+        // veh_capacidad_pasajero NUMBER(2): máximo 99
+        if (capacidad <= 0 || capacidad > 99) {
+            lblMensaje.setText("La capacidad debe estar entre 1 y 99 pasajeros");
+            return false;
+        }
+
+        // veh_precio_dia NUMBER(4,2): máximo 99.99
+        if (!Validaciones.dentroDeRangoDecimal(precioDia, 4, 2)) {
+            lblMensaje.setText("El precio por día debe ser mayor a 0 y menor a 100.00");
+            return false;
+        }
+
         return true;
     }
 

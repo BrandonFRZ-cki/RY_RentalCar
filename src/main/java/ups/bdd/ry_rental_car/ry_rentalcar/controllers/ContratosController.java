@@ -80,7 +80,7 @@ public class ContratosController implements UsuarioAware {
         colTotalLinea.setCellValueFactory(new PropertyValueFactory<>("totalTexto"));
         tblDetalleServicios.setItems(detalleActual);
 
-        cmbServicio.setItems(FXCollections.observableArrayList(servicioRepository.listarTodos()));
+        cmbServicio.setItems(FXCollections.observableArrayList(servicioRepository.listarActivos()));
 
         cargarContratosDesdeBD();
 

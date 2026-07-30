@@ -83,6 +83,9 @@
             <Label text="Correo:" styleClass="field-label"/>
             <TextField fx:id="txtCorreo" prefHeight="34"/>
 
+            <Label text="Dirección:" styleClass="field-label"/>
+            <TextField fx:id="txtDireccion" prefWidth="300" prefHeight="34"/>
+
             <Label fx:id="lblMensaje" styleClass="error-text"/>
 
             <HBox spacing="15" alignment="CENTER">
@@ -97,11 +100,9 @@
                         onAction="#actualizarCliente"/>
             </HBox>
 
-            <HBox alignment="CENTER">
-                <Button text="Desactivar"
-                        styleClass="btn-danger"
-                        prefWidth="170"
-                        onAction="#desactivarCliente"/>
+            <HBox spacing="15" alignment="CENTER">
+                <Button text="Desactivar" styleClass="btn-danger" prefWidth="145" onAction="#desactivarCliente"/>
+                <Button text="Activar" styleClass="btn-dark" prefWidth="145" onAction="#activarCliente"/>
             </HBox>
 
         </VBox>

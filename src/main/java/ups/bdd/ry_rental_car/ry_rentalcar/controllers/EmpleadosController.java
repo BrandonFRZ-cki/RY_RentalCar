@@ -6,9 +6,10 @@ import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import ups.bdd.ry_rental_car.ry_rentalcar.data.DataStore;
-import ups.bdd.ry_rental_car.ry_rentalcar.models.Empleado;
 import ups.bdd.ry_rental_car.ry_rentalcar.data.repository.EmpleadoRepository;
+import ups.bdd.ry_rental_car.ry_rentalcar.models.Empleado;
+import ups.bdd.ry_rental_car.ry_rentalcar.util.RolEmpleado;
+import ups.bdd.ry_rental_car.ry_rentalcar.util.Validaciones;
 
 public class EmpleadosController {
 
@@ -21,16 +22,14 @@ public class EmpleadosController {
     @FXML private TableColumn<Empleado, String> colEstado;
 
     @FXML private TextField txtIdentificacion;
+    @FXML private TextField txtTelefono;
     @FXML private TextField txtNombres;
     @FXML private TextField txtApellidos;
     @FXML private TextField txtDireccion;
-    @FXML private TextField txtTelefono;
     @FXML private TextField txtCorreo;
     @FXML private ComboBox<String> cmbRol;
-    @FXML private ComboBox<String> cmbEstado;
     @FXML private Label lblMensaje;
 
-    // --- Nuevo: crear usuario a partir del empleado seleccionado (Punto 2) ---
     @FXML private TextField txtNombreUsuario;
     @FXML private PasswordField txtContraseniaUsuario;
     @FXML private ComboBox<String> cmbPermiso;
@@ -39,26 +38,31 @@ public class EmpleadosController {
     private final EmpleadoRepository empleadoRepository = new EmpleadoRepository();
 
     private Empleado empleadoSeleccionado;
-    private FilteredList<Empleado> empleadosFiltrados;
-
     private ObservableList<Empleado> empleadosData;
+    private FilteredList<Empleado> empleadosFiltrados;
 
     @FXML
     public void initialize() {
         colIdentificacion.setCellValueFactory(new PropertyValueFactory<>("identificacion"));
         colNombre.setCellValueFactory(new PropertyValueFactory<>("nombreCompleto"));
         colTelefono.setCellValueFactory(new PropertyValueFactory<>("telefono"));
-        colRol.setCellValueFactory(new PropertyValueFactory<>("rol"));
+
+        colRol.setCellValueFactory(celda ->
+                new javafx.beans.property.SimpleStringProperty(RolEmpleado.aTexto(celda.getValue().getRol()))
+        );
+
         colEstado.setCellValueFactory(new PropertyValueFactory<>("estado"));
 
-        cmbRol.setItems(DataStore.ROLES_EMPLEADO);
-        cmbEstado.setItems(DataStore.ESTADOS_EMPLEADO);
+        cmbRol.setItems(RolEmpleado.listarTextos());
         cmbPermiso.setItems(FXCollections.observableArrayList("ADMINISTRADOR", "GENERAL"));
 
         cargarEmpleadosDesdeBD();
 
         txtBuscar.textProperty().addListener((obs, o, n) -> filtrarEmpleados(n));
-        tblEmpleados.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> cargarEmpleadoSeleccionado(n));
+
+        tblEmpleados.getSelectionModel().selectedItemProperty().addListener(
+                (obs, o, n) -> cargarEmpleadoSeleccionado(n)
+        );
     }
 
     private void cargarEmpleadosDesdeBD() {
@@ -67,13 +71,38 @@ public class EmpleadosController {
         tblEmpleados.setItems(empleadosFiltrados);
     }
 
+    private void filtrarEmpleados(String filtro) {
+        empleadosFiltrados.setPredicate(empleado -> {
+            if (filtro == null || filtro.isBlank()) return true;
+            String texto = filtro.toLowerCase();
+            return empleado.getIdentificacion().toLowerCase().contains(texto)
+                    || empleado.getNombreCompleto().toLowerCase().contains(texto)
+                    || empleado.getTelefono().toLowerCase().contains(texto)
+                    || empleado.getEstado().toLowerCase().contains(texto);
+        });
+    }
+
+    private void cargarEmpleadoSeleccionado(Empleado empleado) {
+        empleadoSeleccionado = empleado;
+        if (empleado == null) return;
+
+        txtIdentificacion.setText(empleado.getIdentificacion());
+        txtTelefono.setText(empleado.getTelefono());
+        txtNombres.setText(empleado.getNombre());
+        txtApellidos.setText(empleado.getApellido());
+        txtDireccion.setText(empleado.getDireccion());
+        txtCorreo.setText(empleado.getCorreo());
+        cmbRol.setValue(RolEmpleado.aTexto(empleado.getRol()));
+        lblMensaje.setText("");
+    }
+
     @FXML
     private void guardarEmpleado() {
         if (!validarCampos()) return;
 
         Empleado nuevo = new Empleado(0, txtIdentificacion.getText().trim(), txtNombres.getText().trim(),
                 txtApellidos.getText().trim(), txtDireccion.getText().trim(), txtTelefono.getText().trim(),
-                txtCorreo.getText().trim(), cmbRol.getValue(), cmbEstado.getValue());
+                txtCorreo.getText().trim(), RolEmpleado.aLetra(cmbRol.getValue()), "Activo");
 
         if (empleadoRepository.guardar(nuevo)) {
             cargarEmpleadosDesdeBD();
@@ -98,7 +127,7 @@ public class EmpleadosController {
         empleadoSeleccionado.setDireccion(txtDireccion.getText().trim());
         empleadoSeleccionado.setTelefono(txtTelefono.getText().trim());
         empleadoSeleccionado.setCorreo(txtCorreo.getText().trim());
-        empleadoSeleccionado.setRol(cmbRol.getValue());
+        empleadoSeleccionado.setRol(RolEmpleado.aLetra(cmbRol.getValue()));
 
         if (empleadoRepository.actualizar(empleadoSeleccionado)) {
             cargarEmpleadosDesdeBD();
@@ -108,38 +137,6 @@ public class EmpleadosController {
             lblMensaje.setText("No se pudo actualizar el empleado");
         }
     }
-    private void filtrarEmpleados(String filtro) {
-        empleadosFiltrados.setPredicate(empleado -> {
-            if (filtro == null || filtro.isBlank()) {
-                return true;
-            }
-
-            String texto = filtro.toLowerCase();
-
-            return empleado.getIdentificacion().toLowerCase().contains(texto)
-                    || empleado.getNombreCompleto().toLowerCase().contains(texto)
-                    || empleado.getRol().toLowerCase().contains(texto)
-                    || empleado.getEstado().toLowerCase().contains(texto);
-        });
-    }
-
-    private void cargarEmpleadoSeleccionado(Empleado empleado) {
-        empleadoSeleccionado = empleado;
-
-        if (empleado == null) {
-            return;
-        }
-
-        txtIdentificacion.setText(empleado.getIdentificacion());
-        txtNombres.setText(empleado.getNombre());
-        txtApellidos.setText(empleado.getApellido());
-        txtDireccion.setText(empleado.getDireccion());
-        txtTelefono.setText(empleado.getTelefono());
-        txtCorreo.setText(empleado.getCorreo());
-        cmbRol.setValue(empleado.getRol());
-        cmbEstado.setValue(empleado.getEstado());
-        lblMensaje.setText("");
-    }
 
     @FXML
     private void desactivarEmpleado() {
@@ -148,34 +145,25 @@ public class EmpleadosController {
             return;
         }
 
-        empleadoSeleccionado.setEstado("Inactivo");
-        tblEmpleados.refresh();
+        empleadoRepository.marcarInactivoEnSesion(empleadoSeleccionado.getCodigo());
+        cargarEmpleadosDesdeBD();
         limpiarCampos();
-        lblMensaje.setText("Empleado desactivado correctamente");
+        lblMensaje.setText("Empleado desactivado (para esta sesión de la app)");
     }
 
-    private boolean validarCampos() {
-        if (txtIdentificacion.getText().isBlank()
-                || txtNombres.getText().isBlank()
-                || txtApellidos.getText().isBlank()
-                || txtDireccion.getText().isBlank()
-                || txtTelefono.getText().isBlank()
-                || txtCorreo.getText().isBlank()
-                || cmbRol.getValue() == null
-                || cmbEstado.getValue() == null) {
-
-            lblMensaje.setText("Complete todos los campos");
-            return false;
+    @FXML
+    private void activarEmpleado() {
+        if (empleadoSeleccionado == null) {
+            lblMensaje.setText("Seleccione un empleado para activar");
+            return;
         }
 
-        return true;
+        empleadoRepository.marcarActivoEnSesion(empleadoSeleccionado.getCodigo());
+        cargarEmpleadosDesdeBD();
+        limpiarCampos();
+        lblMensaje.setText("Empleado activado");
     }
 
-    /**
-     * Punto 2 de la profesora: un usuario del sistema SOLO puede crearse a partir de
-     * un empleado ya existente cuyo rol sea Atención al Cliente ('C'). No se crean
-     * usuarios sueltos con datos libres.
-     */
     @FXML
     private void crearUsuarioParaEmpleado() {
         if (empleadoSeleccionado == null) {
@@ -183,8 +171,13 @@ public class EmpleadosController {
             return;
         }
 
-        if (!"C".equalsIgnoreCase(empleadoSeleccionado.getRol())) {
+        if (!RolEmpleado.puedeSerUsuario(empleadoSeleccionado.getRol())) {
             lblMensajeUsuario.setText("Solo empleados de Atención al Cliente pueden ser usuarios");
+            return;
+        }
+
+        if ("Inactivo".equalsIgnoreCase(empleadoSeleccionado.getEstado())) {
+            lblMensajeUsuario.setText("El empleado está desactivado, actívelo primero");
             return;
         }
 
@@ -211,16 +204,48 @@ public class EmpleadosController {
         }
     }
 
+    private boolean validarCampos() {
+        if (txtIdentificacion.getText().isBlank() || txtNombres.getText().isBlank()
+                || txtApellidos.getText().isBlank() || txtDireccion.getText().isBlank()
+                || txtTelefono.getText().isBlank() || txtCorreo.getText().isBlank()
+                || cmbRol.getValue() == null) {
+            lblMensaje.setText("Complete todos los campos");
+            return false;
+        }
+
+        if (!Validaciones.esNumerico(txtIdentificacion.getText().trim())
+                || !Validaciones.longitudValida(txtIdentificacion.getText().trim(), 20)) {
+            lblMensaje.setText(Validaciones.mensajeNumeroYLongitud("La identificación", 20));
+            return false;
+        }
+
+        if (!Validaciones.esNumerico(txtTelefono.getText().trim())
+                || !Validaciones.longitudValida(txtTelefono.getText().trim(), 10)) {
+            lblMensaje.setText(Validaciones.mensajeNumeroYLongitud("El teléfono", 10));
+            return false;
+        }
+
+        if (!Validaciones.esCorreoValido(txtCorreo.getText().trim())) {
+            lblMensaje.setText("El correo debe tener formato válido (ej. nombre@dominio.com)");
+            return false;
+        }
+
+        if (!Validaciones.longitudValida(txtDireccion.getText().trim(), 100)) {
+            lblMensaje.setText("La dirección no puede superar 100 caracteres");
+            return false;
+        }
+
+        return true;
+    }
+
     private void limpiarCampos() {
         txtIdentificacion.clear();
+        txtTelefono.clear();
         txtNombres.clear();
         txtApellidos.clear();
         txtDireccion.clear();
-        txtTelefono.clear();
         txtCorreo.clear();
         cmbRol.setValue(null);
-        cmbEstado.setValue(null);
-
         tblEmpleados.getSelectionModel().clearSelection();
         empleadoSeleccionado = null;
     }
