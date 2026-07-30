@@ -151,7 +151,30 @@ public class ClientesController {
             lblMensaje.setText("No se pudo activar el cliente");
         }
     }
+    @FXML
+    private void eliminarCliente() {
+        if (clienteSeleccionado == null) {
+            lblMensaje.setText("Seleccione un cliente para eliminar");
+            return;
+        }
 
+        String resultado = clienteRepository.eliminarOSugerirDesactivar(clienteSeleccionado.getCodigo());
+
+        switch (resultado) {
+            case "ELIMINADO":
+                cargarClientesDesdeBD();
+                limpiarCampos();
+                lblMensaje.setText("Cliente eliminado permanentemente");
+                break;
+            case "DESACTIVADO":
+                cargarClientesDesdeBD();
+                limpiarCampos();
+                lblMensaje.setText("El cliente tiene reservas asociadas; se desactivó en lugar de eliminarlo");
+                break;
+            default:
+                lblMensaje.setText("No se pudo eliminar ni desactivar el cliente");
+        }
+    }
     private boolean validarCampos() {
         if (txtCedula.getText().isBlank() || txtNombres.getText().isBlank()
                 || txtApellidos.getText().isBlank() || txtTelefono.getText().isBlank()

@@ -56,7 +56,8 @@
         </VBox>
 
         <!-- Formulario -->
-        <VBox spacing="8"
+        <VBox fx:id="panelFormulario"
+              spacing="15"
               prefWidth="430"
               prefHeight="520"
               styleClass="form-card">
@@ -72,6 +73,10 @@
 
             <Label text="Tipo:" styleClass="field-label"/>
             <ComboBox fx:id="cmbTipo" prefWidth="260" prefHeight="32"/>
+
+            <Button fx:id="btnNuevaMarcaModelo" text="+ Nueva Marca / Modelo / Tipo"
+                    styleClass="btn-dark" prefWidth="260" prefHeight="34"
+                    onAction="#nuevaMarcaModeloTipo"/>
 
             <HBox spacing="45">
                 <VBox spacing="5">
@@ -107,11 +112,9 @@
                         onAction="#actualizarVehiculo"/>
             </HBox>
 
-            <HBox alignment="CENTER">
-                <Button text="Desactivar"
-                        styleClass="btn-danger"
-                        prefWidth="170"
-                        onAction="#desactivarVehiculo"/>
+            <HBox spacing="15" alignment="CENTER">
+                <Button text="Eliminar" styleClass="btn-danger" prefWidth="145" onAction="#eliminarVehiculo"/>
+                <Button text="Desactivar" styleClass="btn-danger" prefWidth="145" onAction="#desactivarVehiculo"/>
             </HBox>
 
         </VBox>

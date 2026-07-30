@@ -101,6 +101,7 @@
             </HBox>
 
             <HBox spacing="15" alignment="CENTER">
+                <Button text="Eliminar" styleClass="btn-danger" prefWidth="145" onAction="#eliminarCliente"/>
                 <Button text="Desactivar" styleClass="btn-danger" prefWidth="145" onAction="#desactivarCliente"/>
                 <Button text="Activar" styleClass="btn-dark" prefWidth="145" onAction="#activarCliente"/>
             </HBox>

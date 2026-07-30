@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
@@ -9,107 +11,87 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<?import javafx.scene.control.DatePicker?>
-<?import javafx.scene.control.ComboBox?>
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="ups.bdd.ry_rental_car.ry_rentalcar.controllers.ReservasController"
-            stylesheets="@styles.css">
+<AnchorPane stylesheets="@styles.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ups.bdd.ry_rental_car.ry_rentalcar.controllers.ReservasController">
 
-    <HBox spacing="45"
-          AnchorPane.topAnchor="50"
-          AnchorPane.leftAnchor="65"
-          AnchorPane.rightAnchor="65">
+    <HBox spacing="45" AnchorPane.leftAnchor="65" AnchorPane.rightAnchor="65" AnchorPane.topAnchor="50">
 
-        <VBox spacing="20" prefWidth="470" prefHeight="520" styleClass="table-card">
+        <VBox prefHeight="520" prefWidth="470" spacing="20" styleClass="table-card">
 
             <HBox spacing="15">
-                <TextField fx:id="txtBuscar"
-                           promptText="Buscar Reservas"
-                           prefWidth="330"
-                           prefHeight="40"
-                           styleClass="search-input"/>
+                <TextField fx:id="txtBuscar" prefHeight="40" prefWidth="330" promptText="Buscar Reservas" styleClass="search-input" />
 
-                <Button text="Buscar" prefWidth="80" prefHeight="40" styleClass="btn-dark"/>
+                <Button prefHeight="40" prefWidth="80" styleClass="btn-dark" text="Buscar" />
             </HBox>
 
-            <TableView fx:id="tblReservas" prefWidth="440" prefHeight="300">
+            <TableView fx:id="tblReservas" prefHeight="300" prefWidth="440">
                 <columns>
-                    <TableColumn fx:id="colCliente" text="Cliente" prefWidth="100"/>
-                    <TableColumn fx:id="colVehiculo" text="Vehículo" prefWidth="120"/>
-                    <TableColumn fx:id="colFechaInicio" text="Inicio" prefWidth="75"/>
-                    <TableColumn fx:id="colFechaFin" text="Fin" prefWidth="75"/>
-                    <TableColumn fx:id="colEstado" text="Estado" prefWidth="80"/>
+                    <TableColumn fx:id="colCliente" prefWidth="100" text="Cliente" />
+                    <TableColumn fx:id="colVehiculo" prefWidth="120" text="Vehículo" />
+                    <TableColumn fx:id="colFechaInicio" prefWidth="75" text="Inicio" />
+                    <TableColumn fx:id="colFechaFin" prefWidth="75" text="Fin" />
+                    <TableColumn fx:id="colEstado" prefWidth="80" text="Estado" />
                 </columns>
             </TableView>
 
         </VBox>
 
-        <VBox spacing="8" prefWidth="430" prefHeight="520" styleClass="form-card">
+        <VBox prefHeight="520" prefWidth="430" spacing="8" styleClass="form-card">
 
-            <Label text="Datos de la Reserva" styleClass="form-title"/>
+            <Label styleClass="form-title" text="Datos de la Reserva" />
 
-            <Label text="Cédula del cliente:" styleClass="field-label"/>
-            <TextField fx:id="txtCedulaCliente" promptText="0100000001" prefWidth="300" prefHeight="34"/>
-            <Label fx:id="lblClienteEncontrado" styleClass="field-label"/>
+            <Label styleClass="field-label" text="Cédula del cliente:" />
+            <TextField fx:id="txtCedulaCliente" prefHeight="34" prefWidth="300" promptText="0100000001" />
+            <Label fx:id="lblClienteEncontrado" styleClass="field-label" />
 
-            <Label text="Placa del vehículo:" styleClass="field-label"/>
-            <TextField fx:id="txtPlacaVehiculo" promptText="ABC-1000" prefWidth="300" prefHeight="34"/>
-            <Label fx:id="lblVehiculoEncontrado" styleClass="field-label"/>
+            <Label styleClass="field-label" text="Placa del vehículo:" />
+            <TextField fx:id="txtPlacaVehiculo" prefHeight="34" prefWidth="300" promptText="ABC-1000" />
+            <Label fx:id="lblVehiculoEncontrado" styleClass="field-label" />
 
-            <Label text="Usuario que registra:" styleClass="field-label"/>
-            <Label fx:id="lblUsuarioActual" styleClass="field-label"/>
+            <Label styleClass="field-label" text="Usuario que registra:" />
+            <Label fx:id="lblUsuarioActual" styleClass="field-label" />
 
             <HBox spacing="25">
 
                 <VBox spacing="5">
-                    <Label text="Fecha/hora inicio:"
-                           styleClass="field-label"/>
-
-                    <HBox spacing="6">
-                        <DatePicker fx:id="dpFechaInicio"
-                                    promptText="Fecha"
-                                    prefWidth="135"
-                                    prefHeight="34"/>
-
-                        <ComboBox fx:id="cmbHoraInicio"
-                                  promptText="Hora"
-                                  prefWidth="90"
-                                  prefHeight="34"/>
-                    </HBox>
+                    <Label styleClass="field-label" text="Fecha/hora inicio:" />
+               <VBox prefHeight="55.0" prefWidth="186.0">
+                  <children>
+                           <DatePicker fx:id="dpFechaInicio" prefHeight="29.0" prefWidth="156.0" promptText="Fecha" />
+      
+                          <HBox spacing="6" />
+   
+                              <ComboBox fx:id="cmbHoraInicio" prefHeight="26.0" prefWidth="155.0" promptText="Hora" />
+                  </children>
+               </VBox>
                 </VBox>
 
-                <VBox spacing="5">
-                    <Label text="Fecha/hora fin:"
-                           styleClass="field-label"/>
+                <VBox prefHeight="82.0" prefWidth="174.0" spacing="5">
+                    <Label styleClass="field-label" text="Fecha/hora fin:" />
+               <VBox prefHeight="200.0" prefWidth="100.0">
+                  <children>
+                           <DatePicker fx:id="dpFechaFin" prefHeight="29.0" prefWidth="151.0" promptText="Fecha" />
+   
+                           <ComboBox fx:id="cmbHoraFin" prefHeight="26.0" prefWidth="151.0" promptText="Hora" />
+                  </children>
+               </VBox>
 
-                    <HBox spacing="6">
-                        <DatePicker fx:id="dpFechaFin"
-                                    promptText="Fecha"
-                                    prefWidth="135"
-                                    prefHeight="34"/>
-
-                        <ComboBox fx:id="cmbHoraFin"
-                                  promptText="Hora"
-                                  prefWidth="90"
-                                  prefHeight="34"/>
-                    </HBox>
+                    <HBox spacing="6" />
                 </VBox>
 
             </HBox>
 
-            <Label text="Estado:" styleClass="field-label"/>
-            <Label fx:id="lblEstado" styleClass="field-label"/>
+            <Label styleClass="field-label" text="Estado:" />
+            <Label fx:id="lblEstado" styleClass="field-label" />
 
-            <Label fx:id="lblMensaje" styleClass="error-text"/>
+            <Label fx:id="lblMensaje" styleClass="error-text" />
 
-            <HBox spacing="12" alignment="CENTER">
-                <Button text="Guardar" styleClass="btn-dark" prefWidth="120" onAction="#guardarReserva"/>
-                <Button text="Modificar (nueva)" styleClass="btn-dark" prefWidth="150" onAction="#modificarComoNuevaReserva"/>
+            <HBox alignment="CENTER" spacing="12">
+                <Button onAction="#guardarReserva" prefWidth="120" styleClass="btn-dark" text="Guardar" />
+                <Button onAction="#modificarComoNuevaReserva" prefWidth="150" styleClass="btn-dark" text="Modificar (nueva)" />
             </HBox>
 
             <HBox alignment="CENTER">
-                <Button text="Cancelar Reserva" styleClass="btn-danger" prefWidth="180" onAction="#cancelarReserva"/>
+                <Button onAction="#cancelarReserva" prefWidth="180" styleClass="btn-danger" text="Cancelar Reserva" />
             </HBox>
 
         </VBox>

@@ -205,4 +205,28 @@ public class ServiciosController {
         tblServicios.getSelectionModel().clearSelection();
         servicioSeleccionado = null;
     }
+    @FXML
+    private void eliminarServicio() {
+        if (servicioSeleccionado == null) {
+            lblMensaje.setText("Seleccione un servicio para eliminar");
+            return;
+        }
+
+        String resultado = servicioRepository.eliminarOSugerirDesactivar(servicioSeleccionado.getCodigo());
+
+        switch (resultado) {
+            case "ELIMINADO":
+                cargarServiciosDesdeBD();
+                limpiarCampos();
+                lblMensaje.setText("Servicio eliminado permanentemente");
+                break;
+            case "DESACTIVADO":
+                cargarServiciosDesdeBD();
+                limpiarCampos();
+                lblMensaje.setText("El servicio ya se usó en un contrato; se desactivó en lugar de eliminarlo");
+                break;
+            default:
+                lblMensaje.setText("No se pudo eliminar ni desactivar el servicio");
+        }
+    }
 }

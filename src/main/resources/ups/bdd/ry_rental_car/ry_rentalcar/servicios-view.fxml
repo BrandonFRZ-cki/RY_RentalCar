@@ -88,15 +88,9 @@
             </HBox>
 
             <HBox spacing="15" alignment="CENTER">
-                <Button text="Desactivar"
-                        styleClass="btn-danger"
-                        prefWidth="145"
-                        onAction="#desactivarServicio"/>
-
-                <Button text="Activar"
-                        styleClass="btn-dark"
-                        prefWidth="145"
-                        onAction="#activarServicio"/>
+                <Button text="Eliminar" styleClass="btn-danger" prefWidth="140" onAction="#eliminarServicio"/>
+                <Button text="Desactivar" styleClass="btn-danger" prefWidth="140" onAction="#desactivarServicio"/>
+                <Button text="Activar" styleClass="btn-dark" prefWidth="140" onAction="#activarServicio"/>
             </HBox>
 
         </VBox>

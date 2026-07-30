@@ -45,8 +45,6 @@ public class MainController {
     private void aplicarPermisos() {
         boolean esAdmin = usuarioLogueado.esAdministrador();
 
-        btnVehiculos.setVisible(esAdmin);
-        btnVehiculos.setManaged(esAdmin); // managed=false para que no deje un hueco vacío en el layout
 
         btnServicios.setVisible(esAdmin);
         btnServicios.setManaged(esAdmin);
@@ -87,7 +85,6 @@ public class MainController {
 
     @FXML private void mostrarClientes()  { cargarVista("clientes-view.fxml", "Clientes"); }
     @FXML private void mostrarVehiculos() {
-        if (usuarioLogueado != null && !usuarioLogueado.esAdministrador()) return;
         cargarVista("vehiculos-view.fxml", "Vehículos");
     }
     @FXML private void mostrarServicios() {
@@ -118,6 +115,9 @@ public class MainController {
         }
     }
 
-
+    @FXML
+    private void irAlDashboard() {
+        mostrarDashboard();
+    }
 
 }

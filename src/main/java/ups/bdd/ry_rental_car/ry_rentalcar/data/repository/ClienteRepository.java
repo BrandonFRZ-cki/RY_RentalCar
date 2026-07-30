@@ -6,6 +6,7 @@ import ups.bdd.ry_rental_car.ry_rentalcar.models.Cliente;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -140,6 +141,25 @@ public class ClienteRepository {
         } catch (Exception e) {
             e.printStackTrace();
             return false;
+        }
+    }
+    public String eliminarOSugerirDesactivar(int codigo) {
+        String sqlEliminar = "DELETE FROM ALQ_CLIENTES WHERE cli_codigo = ?";
+
+        try (Connection con = Conexion.obtener();
+             PreparedStatement ps = con.prepareStatement(sqlEliminar)) {
+
+            ps.setInt(1, codigo);
+            int filas = ps.executeUpdate();
+            return filas == 1 ? "ELIMINADO" : "ERROR";
+
+        } catch (SQLIntegrityConstraintViolationException e) {
+            // El cliente tiene reservas asociadas (viola la FK): se desactiva en vez de eliminar.
+            return desactivar(codigo) ? "DESACTIVADO" : "ERROR";
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "ERROR";
         }
     }
 }

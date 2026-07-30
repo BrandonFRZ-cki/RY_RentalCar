@@ -30,7 +30,6 @@ public class MarcaModeloRepository {
         return marcas;
     }
 
-    /** Solo los modelos ligados a esa marca (relación ya modelada en ALQ_MODELOS). */
     public List<Modelo> listarModelosPorMarca(int marCodigo) {
         List<Modelo> modelos = new ArrayList<>();
         String sql = "SELECT mod_codigo, mod_nombre, ALQ_MARCAS_mar_codigo " +
@@ -55,5 +54,80 @@ public class MarcaModeloRepository {
             e.printStackTrace();
         }
         return modelos;
+    }
+
+    /** Crea una marca nueva y devuelve su código generado (o null si falló). */
+    public Integer guardarMarca(String nombre) {
+        String sql = "INSERT INTO ALQ_MARCAS (mar_codigo, mar_nombre) VALUES (ALQ_MARCAS_SEQ.NEXTVAL, ?)";
+
+        try (Connection con = Conexion.obtener();
+             PreparedStatement ps = con.prepareStatement(sql, new String[]{"mar_codigo"})) {
+
+            ps.setString(1, nombre.trim());
+            ps.executeUpdate();
+
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) return keys.getInt(1);
+            }
+            return null;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /** Crea un modelo nuevo ligado a una marca y devuelve su código generado (o null si falló). */
+    public Integer guardarModelo(String nombre, int marCodigo) {
+        String sql = "INSERT INTO ALQ_MODELOS (mod_codigo, mod_nombre, ALQ_MARCAS_mar_codigo) " +
+                "VALUES (ALQ_MODELOS_SEQ.NEXTVAL, ?, ?)";
+
+        try (Connection con = Conexion.obtener();
+             PreparedStatement ps = con.prepareStatement(sql, new String[]{"mod_codigo"})) {
+
+            ps.setString(1, nombre.trim());
+            ps.setInt(2, marCodigo);
+            ps.executeUpdate();
+
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) return keys.getInt(1);
+            }
+            return null;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public boolean existeMarca(String nombre) {
+        String sql = "SELECT COUNT(*) FROM ALQ_MARCAS WHERE UPPER(mar_nombre) = UPPER(?)";
+        try (Connection con = Conexion.obtener();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, nombre.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getInt(1) > 0;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean existeModelo(String nombre, int marCodigo) {
+        String sql = "SELECT COUNT(*) FROM ALQ_MODELOS WHERE UPPER(mod_nombre) = UPPER(?) AND ALQ_MARCAS_mar_codigo = ?";
+        try (Connection con = Conexion.obtener();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, nombre.trim());
+            ps.setInt(2, marCodigo);
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getInt(1) > 0;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

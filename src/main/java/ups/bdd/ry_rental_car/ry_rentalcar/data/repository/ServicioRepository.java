@@ -6,6 +6,7 @@ import ups.bdd.ry_rental_car.ry_rentalcar.models.ServicioAdicional;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -119,6 +120,26 @@ public class ServicioRepository {
         } catch (Exception e) {
             e.printStackTrace();
             return false;
+        }
+    }
+    public String eliminarOSugerirDesactivar(int serCodigo) {
+        String sqlEliminar = "DELETE FROM ALQ_SERVICIOS_ADICIONALES WHERE ser_codigo = ?";
+
+        try (Connection con = Conexion.obtener();
+             PreparedStatement ps = con.prepareStatement(sqlEliminar)) {
+
+            ps.setInt(1, serCodigo);
+            int filas = ps.executeUpdate();
+            return filas == 1 ? "ELIMINADO" : "ERROR";
+
+        } catch (SQLIntegrityConstraintViolationException e) {
+            // Ya está usado en algún contrato: se desactiva en vez de eliminar.
+            marcarInactivoEnSesion(serCodigo);
+            return "DESACTIVADO";
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "ERROR";
         }
     }
 }

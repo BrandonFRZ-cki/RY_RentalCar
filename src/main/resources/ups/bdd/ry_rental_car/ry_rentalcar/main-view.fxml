@@ -11,6 +11,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.Region?>
 
+<?import javafx.scene.Cursor?>
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="ups.bdd.ry_rental_car.ry_rentalcar.controllers.MainController"
@@ -20,8 +21,13 @@
 
     <top>
         <HBox alignment="CENTER_LEFT" spacing="20" styleClass="header-bar">
-            <ImageView fitWidth="220" preserveRatio="true">
-                <image><Image url="@img/logo.png"/></image>
+            <ImageView fitWidth="220" preserveRatio="true" onMouseClicked="#irAlDashboard">
+                <image>
+                    <Image url="@img/logo.png"/>
+                </image>
+                <cursor>
+                    <Cursor fx:constant="HAND"/>
+                </cursor>
             </ImageView>
 
             <Label fx:id="lblUsuario" text="Admin:"/>
