@@ -1,7 +1,6 @@
 package ups.bdd.ry_rental_car.ry_rentalcar.controllers;
 
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -37,7 +36,6 @@ public class VehiculosController {
 
     private Vehiculo vehiculoSeleccionado;
     private Modelo modeloSeleccionadoActual;
-    private ObservableList<Vehiculo> vehiculosData;
     private FilteredList<Vehiculo> vehiculosFiltrados;
 
     @FXML
@@ -58,10 +56,21 @@ public class VehiculosController {
             }
         });
 
+        // El tipo se sugiere/bloquea según qué tipo ya usan los vehículos existentes
+        // de ese modelo (no se guarda en ALQ_MODELOS, se consulta contra ALQ_VEHICULOS).
         cmbModelo.valueProperty().addListener((obs, o, modeloNuevo) -> {
             modeloSeleccionadoActual = modeloNuevo;
-            if (modeloNuevo != null) {
-                cmbTipo.setValue(modeloNuevo.getTipoNombre());
+
+            if (modeloNuevo == null) {
+                cmbTipo.setValue(null);
+                cmbTipo.setDisable(false);
+                return;
+            }
+
+            String tipoSugerido = vehiculoRepository.tipoSugeridoParaModelo(modeloNuevo.getCodigo());
+
+            if (tipoSugerido != null) {
+                cmbTipo.setValue(tipoSugerido);
                 cmbTipo.setDisable(true);
             } else {
                 cmbTipo.setValue(null);
@@ -74,22 +83,25 @@ public class VehiculosController {
 
         cargarVehiculosDesdeBD();
 
-        txtBuscar.textProperty().addListener((obs, o, n) -> filtrarVehiculos(n));
+        txtBuscar.textProperty().addListener((observable, oldValue, newValue) -> filtrarVehiculos(newValue));
 
         tblVehiculos.getSelectionModel().selectedItemProperty().addListener(
-                (obs, o, n) -> cargarVehiculoSeleccionado(n)
+                (observable, oldValue, newValue) -> cargarVehiculoSeleccionado(newValue)
         );
     }
 
     private void cargarVehiculosDesdeBD() {
-        vehiculosData = FXCollections.observableArrayList(vehiculoRepository.listarTodos());
-        vehiculosFiltrados = new FilteredList<>(vehiculosData, v -> true);
+        vehiculosFiltrados = new FilteredList<>(
+                FXCollections.observableArrayList(vehiculoRepository.listarTodos()), vehiculo -> true
+        );
         tblVehiculos.setItems(vehiculosFiltrados);
     }
 
     private void filtrarVehiculos(String filtro) {
         vehiculosFiltrados.setPredicate(vehiculo -> {
-            if (filtro == null || filtro.isBlank()) return true;
+            if (filtro == null || filtro.isBlank()) {
+                return true;
+            }
             String texto = filtro.toLowerCase();
             return vehiculo.getMarcaModelo().toLowerCase().contains(texto)
                     || vehiculo.getMatricula().toLowerCase().contains(texto)
@@ -99,7 +111,9 @@ public class VehiculosController {
 
     private void cargarVehiculoSeleccionado(Vehiculo vehiculo) {
         vehiculoSeleccionado = vehiculo;
-        if (vehiculo == null) return;
+        if (vehiculo == null) {
+            return;
+        }
 
         txtAnio.setText(String.valueOf(vehiculo.getAnio()));
         txtMatricula.setText(vehiculo.getMatricula());
@@ -107,18 +121,23 @@ public class VehiculosController {
         txtPrecioDia.setText(String.valueOf(vehiculo.getPrecioDia()));
         cmbEstado.setValue(vehiculo.getEstado());
         lblMensaje.setText("");
-        // La Marca/Modelo del vehículo seleccionado no se preselecciona automáticamente
-        // en los combos (se buscaría por nombre); para esta entrega no es obligatorio,
-        // solo se necesita para EDITAR marca/modelo, no para ver los demás campos.
     }
 
     @FXML
     private void guardarVehiculo() {
-        if (!validarCampos()) return;
+        if (!validarCampos()) {
+            return;
+        }
+
+        Integer tipCodigo = vehiculoRepository.obtenerCodigoTipoPorNombre(cmbTipo.getValue());
+        if (tipCodigo == null) {
+            lblMensaje.setText("No se encontró el tipo de vehículo seleccionado");
+            return;
+        }
 
         boolean guardado = vehiculoRepository.guardar(
                 modeloSeleccionadoActual.getCodigo(),
-                modeloSeleccionadoActual.getTipoCodigo(),
+                tipCodigo,
                 Integer.parseInt(txtAnio.getText().trim()),
                 txtMatricula.getText().trim(),
                 Integer.parseInt(txtCapacidad.getText().trim()),
@@ -140,7 +159,9 @@ public class VehiculosController {
             lblMensaje.setText("Seleccione un vehículo para actualizar");
             return;
         }
-        if (!validarCampos()) return;
+        if (!validarCampos()) {
+            return;
+        }
 
         boolean actualizado = vehiculoRepository.actualizar(
                 vehiculoSeleccionado.getCodigo(),
@@ -167,7 +188,7 @@ public class VehiculosController {
             return;
         }
 
-        if (vehiculoRepository.desactivar(vehiculoSeleccionado.getCodigo())) {
+        if (vehiculoRepository.actualizarEstado(vehiculoSeleccionado.getCodigo(), "X")) {
             cargarVehiculosDesdeBD();
             limpiarCampos();
             lblMensaje.setText("Vehículo desactivado");
@@ -177,10 +198,10 @@ public class VehiculosController {
     }
 
     private boolean validarCampos() {
-        if (modeloSeleccionadoActual == null || txtMatricula.getText().isBlank()
-                || txtCapacidad.getText().isBlank() || txtAnio.getText().isBlank()
-                || txtPrecioDia.getText().isBlank()) {
-            lblMensaje.setText("Complete todos los campos, incluida marca y modelo");
+        if (modeloSeleccionadoActual == null || cmbTipo.getValue() == null
+                || txtMatricula.getText().isBlank() || txtCapacidad.getText().isBlank()
+                || txtAnio.getText().isBlank() || txtPrecioDia.getText().isBlank()) {
+            lblMensaje.setText("Complete todos los campos, incluida marca, modelo y tipo");
             return false;
         }
         try {

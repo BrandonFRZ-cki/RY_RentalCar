@@ -147,4 +147,57 @@ public class VehiculoRepository {
             return false;
         }
     }
+
+    /** Cambia el estado del vehículo (D-disponible, A-alquilado, M-mantenimiento, X-desactivado). */
+    public boolean actualizarEstado(int vehCodigo, String estado) {
+        String sql = "UPDATE ALQ_VEHICULOS SET veh_estado = ? WHERE veh_codigo = ?";
+
+        try (Connection con = Conexion.obtener();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, estado);
+            ps.setInt(2, vehCodigo);
+            return ps.executeUpdate() == 1;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public String tipoSugeridoParaModelo(int modCodigo) {
+        String sql = "SELECT t.tip_nombre FROM ALQ_VEHICULOS v " +
+                "JOIN ALQ_TIPOS_VEHICULOS t ON t.tip_codigo = v.ALQ_TIPOS_VEHICULOS_tip_codigo " +
+                "WHERE v.ALQ_MODELOS_mod_codigo = ? AND ROWNUM = 1";
+
+        try (Connection con = Conexion.obtener();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, modCodigo);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getString("tip_nombre") : null;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public Integer obtenerCodigoTipoPorNombre(String tipNombre) {
+        String sql = "SELECT tip_codigo FROM ALQ_TIPOS_VEHICULOS WHERE tip_nombre = ?";
+
+        try (Connection con = Conexion.obtener();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, tipNombre);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt("tip_codigo") : null;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

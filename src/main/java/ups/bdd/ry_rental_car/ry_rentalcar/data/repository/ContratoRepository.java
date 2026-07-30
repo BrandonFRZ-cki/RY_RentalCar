@@ -12,15 +12,14 @@ import java.util.List;
 
 public class ContratoRepository {
 
-    /** Crea el contrato (cabecera) y sus líneas de servicios adicionales en una sola transacción. */
     public Integer crearConDetalle(String numero, LocalDate fechaInicio, LocalDate fechaFin,
                                    double precioDiario, double subtotalRenta, double ivaRenta, double totalRenta,
                                    int usuCodigo, int resCodigo, List<DetalleServicio> detalles) {
 
         String sqlContrato = "INSERT INTO ALQ_CONTRATOS " +
                 "(con_codigo, con_numero, con_fecha_inicio, con_fecha_fin, con_precio_diario, " +
-                " con_subtotal, con_valor_iva, con_total, con_estado, ALQ_USUARIOS_usu_codigo, ALQ_RESERVAS_res_codigo) " +
-                "VALUES (ALQ_CONTRATOS_SEQ.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, 'E', ?, ?)";
+                " con_subtotal, con_valor_iva, con_total, ALQ_USUARIOS_usu_codigo, ALQ_RESERVAS_res_codigo) " +
+                "VALUES (ALQ_CONTRATOS_SEQ.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         String sqlDetalle = "INSERT INTO ALQ_DETALLES_CONTRATOS " +
                 "(det_codigo, det_cantidad, det_precio_unitario, det_subtotal, det_valor_iva, det_total, " +
@@ -79,39 +78,65 @@ public class ContratoRepository {
 
         } finally {
             try {
-                if (con != null) {
-                    con.setAutoCommit(true);
-                    con.close();
-                }
+                if (con != null) { con.setAutoCommit(true); con.close(); }
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }
         }
     }
 
-    /** Anula el contrato (no se elimina, solo cambia de estado). */
-    public boolean anular(int conCodigo) {
-        String sql = "UPDATE ALQ_CONTRATOS SET con_estado = 'X' WHERE con_codigo = ?";
+    /**
+     * "Anular" = eliminar el contrato y su detalle (no hay con_estado que actualizar),
+     * y liberar el vehículo (vuelve a estado Disponible).
+     */
+    public boolean anular(int conCodigo, int vehCodigo) {
+        Connection con = null;
+        try {
+            con = Conexion.obtener();
+            con.setAutoCommit(false);
 
-        try (Connection con = Conexion.obtener();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+            try (PreparedStatement ps = con.prepareStatement(
+                    "DELETE FROM ALQ_DETALLES_CONTRATOS WHERE ALQ_CONTRATOS_con_codigo = ?")) {
+                ps.setInt(1, conCodigo);
+                ps.executeUpdate();
+            }
 
-            ps.setInt(1, conCodigo);
-            return ps.executeUpdate() == 1;
+            try (PreparedStatement ps = con.prepareStatement(
+                    "DELETE FROM ALQ_CONTRATOS WHERE con_codigo = ?")) {
+                ps.setInt(1, conCodigo);
+                ps.executeUpdate();
+            }
+
+            try (PreparedStatement ps = con.prepareStatement(
+                    "UPDATE ALQ_VEHICULOS SET veh_estado = 'D' WHERE veh_codigo = ?")) {
+                ps.setInt(1, vehCodigo);
+                ps.executeUpdate();
+            }
+
+            con.commit();
+            return true;
 
         } catch (Exception e) {
             e.printStackTrace();
+            try { if (con != null) con.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
             return false;
+
+        } finally {
+            try {
+                if (con != null) { con.setAutoCommit(true); con.close(); }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
         }
     }
 
-    /** Todos los contratos, con su reserva ya resuelta, para la tabla de la pantalla. */
+    /** Todos los contratos vigentes (los anulados ya no existen: se eliminaron). */
     public List<Contrato> listarTodos(ReservaRepository reservaRepository) {
         List<Contrato> contratos = new ArrayList<>();
         List<Reserva> todasLasReservas = reservaRepository.listarTodas();
 
         String sql = "SELECT con_codigo, con_numero, con_precio_diario, con_subtotal, con_valor_iva, " +
-                "       con_total, con_estado, ALQ_RESERVAS_res_codigo, u.usu_nombre " +
+                "       con_total, ALQ_RESERVAS_res_codigo, u.usu_nombre " +
                 "FROM ALQ_CONTRATOS c " +
                 "JOIN ALQ_USUARIOS u ON u.usu_codigo = c.ALQ_USUARIOS_usu_codigo " +
                 "ORDER BY con_codigo DESC";
@@ -128,12 +153,10 @@ public class ContratoRepository {
 
                 if (reserva == null) continue;
 
-                String estado = "E".equalsIgnoreCase(rs.getString("con_estado")) ? "Emitido" : "Anulado";
-
                 contratos.add(new Contrato(
                         rs.getInt("con_codigo"), rs.getString("con_numero"), reserva, rs.getString("usu_nombre"),
                         rs.getDouble("con_precio_diario"), rs.getDouble("con_subtotal"),
-                        rs.getDouble("con_valor_iva"), rs.getDouble("con_total"), estado
+                        rs.getDouble("con_valor_iva"), rs.getDouble("con_total"), "Emitido"
                 ));
             }
 
@@ -144,7 +167,7 @@ public class ContratoRepository {
     }
 
     public int contarActivos() {
-        String sql = "SELECT COUNT(*) FROM ALQ_CONTRATOS WHERE con_estado = 'E'";
+        String sql = "SELECT COUNT(*) FROM ALQ_CONTRATOS";
 
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql);

@@ -16,12 +16,14 @@ public class ReservaRepository {
     private static final DateTimeFormatter FORMATO_SALIDA = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
 
     private static final String SELECT_BASE =
-            "SELECT r.res_codigo, r.res_fecha_hora_inicio, r.res_fecha_hora_fin, r.res_estado, " +
+            "SELECT r.res_codigo, r.res_fecha_hora_inicio, r.res_fecha_hora_fin, " +
                     "       c.cli_codigo, c.cli_cedula, c.cli_nombre, c.cli_apellido, c.cli_direccion, " +
                     "       c.cli_telefono, c.cli_correo, c.cli_estado, " +
                     "       v.veh_codigo, v.veh_anio, v.veh_matricula, v.veh_capacidad_pasajero, " +
                     "       v.veh_precio_dia, v.veh_estado, ma.mar_nombre, mo.mod_nombre, t.tip_nombre, " +
-                    "       u.usu_nombre " +
+                    "       u.usu_nombre, " +
+                    "       CASE WHEN EXISTS (SELECT 1 FROM ALQ_CONTRATOS ct WHERE ct.ALQ_RESERVAS_res_codigo = r.res_codigo) " +
+                    "            THEN 'Con contrato' ELSE 'Activa' END AS estado_calculado " +
                     "FROM ALQ_RESERVAS r " +
                     "JOIN ALQ_CLIENTES c ON c.cli_codigo = r.ALQ_CLIENTES_cli_codigo " +
                     "JOIN ALQ_VEHICULOS v ON v.veh_codigo = r.ALQ_VEHICULOS_veh_codigo " +
@@ -30,15 +32,17 @@ public class ReservaRepository {
                     "JOIN ALQ_TIPOS_VEHICULOS t ON t.tip_codigo = v.ALQ_TIPOS_VEHICULOS_tip_codigo " +
                     "JOIN ALQ_USUARIOS u ON u.usu_codigo = r.ALQ_USUARIOS_usu_codigo ";
 
-    /** Todas las reservas del sistema, para la tabla de la pantalla de Reservas. */
+    /** Todas las reservas (las canceladas ya no existen: se eliminaron). */
     public List<Reserva> listarTodas() {
         String sql = SELECT_BASE + "ORDER BY r.res_codigo DESC";
         return ejecutarListado(sql, ps -> {});
     }
 
-    /** Solo las reservas ACTIVAS de un cliente por cédula: alimenta el combo de Contratos. */
+    /** Solo reservas de ese cliente que TODAVÍA no tienen un contrato generado. */
     public List<Reserva> listarActivasPorCedula(String cedula) {
-        String sql = SELECT_BASE + "WHERE c.cli_cedula = ? AND r.res_estado = 'A' ORDER BY r.res_codigo DESC";
+        String sql = SELECT_BASE +
+                "WHERE c.cli_cedula = ? " +
+                "AND NOT EXISTS (SELECT 1 FROM ALQ_CONTRATOS ct WHERE ct.ALQ_RESERVAS_res_codigo = r.res_codigo)";
         return ejecutarListado(sql, ps -> ps.setString(1, cedula.trim()));
     }
 
@@ -69,13 +73,11 @@ public class ReservaRepository {
                             rs.getInt("veh_capacidad_pasajero"), rs.getDouble("veh_precio_dia"), rs.getString("veh_estado")
                     );
 
-                    String estado = "A".equalsIgnoreCase(rs.getString("res_estado")) ? "Activa" : "Cancelada";
-
                     reservas.add(new Reserva(
                             rs.getInt("res_codigo"), cliente, vehiculo, rs.getString("usu_nombre"),
                             rs.getTimestamp("res_fecha_hora_inicio").toLocalDateTime().format(FORMATO_SALIDA),
                             rs.getTimestamp("res_fecha_hora_fin").toLocalDateTime().format(FORMATO_SALIDA),
-                            estado
+                            rs.getString("estado_calculado")
                     ));
                 }
             }
@@ -86,10 +88,10 @@ public class ReservaRepository {
         return reservas;
     }
 
-    /** true si el vehículo ya tiene otra reserva activa que se cruza con el rango pedido. */
+    /** Ya no filtra por estado: si la reserva existe, está activa (las canceladas se eliminan). */
     public boolean tieneCruceDeFechas(int vehCodigo, LocalDateTime inicio, LocalDateTime fin) {
         String sql = "SELECT COUNT(*) FROM ALQ_RESERVAS " +
-                "WHERE ALQ_VEHICULOS_veh_codigo = ? AND res_estado = 'A' " +
+                "WHERE ALQ_VEHICULOS_veh_codigo = ? " +
                 "AND res_fecha_hora_inicio < ? AND res_fecha_hora_fin > ?";
 
         try (Connection con = Conexion.obtener();
@@ -106,16 +108,16 @@ public class ReservaRepository {
 
         } catch (Exception e) {
             e.printStackTrace();
-            return true; // ante la duda, no dejamos reservar
+            return true;
         }
     }
 
-    /** Crea la reserva con estado "A" (Activa) por defecto y el usuario logueado (no editable). */
+    /** Crea la reserva (sin columna de estado: el DDL original no la tiene). */
     public Integer crear(int cliCodigo, int usuCodigo, int vehCodigo, LocalDateTime inicio, LocalDateTime fin) {
         String sql = "INSERT INTO ALQ_RESERVAS " +
-                "(res_codigo, res_fecha_hora_inicio, res_fecha_hora_fin, res_estado, " +
+                "(res_codigo, res_fecha_hora_inicio, res_fecha_hora_fin, " +
                 " ALQ_CLIENTES_cli_codigo, ALQ_USUARIOS_usu_codigo, ALQ_VEHICULOS_veh_codigo) " +
-                "VALUES (ALQ_RESERVAS_SEQ.NEXTVAL, ?, ?, 'A', ?, ?, ?)";
+                "VALUES (ALQ_RESERVAS_SEQ.NEXTVAL, ?, ?, ?, ?, ?)";
 
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql, new String[]{"res_codigo"})) {
@@ -139,7 +141,7 @@ public class ReservaRepository {
         }
     }
 
-    /** "No hay actualizaciones de reservas": eliminar la anterior y crear una nueva. */
+    /** Elimina la reserva. Se usa tanto para "modificar" (eliminar+crear) como para "cancelar". */
     public boolean eliminar(int resCodigo) {
         String sql = "DELETE FROM ALQ_RESERVAS WHERE res_codigo = ?";
 
@@ -155,25 +157,15 @@ public class ReservaRepository {
         }
     }
 
-    /** Marca la reserva como Cancelada (libera el vehículo) en vez de eliminarla. */
+    /** "Cancelar" = eliminar (no hay columna de estado que actualizar). */
     public boolean cancelar(int resCodigo) {
-        String sql = "UPDATE ALQ_RESERVAS SET res_estado = 'C' WHERE res_codigo = ?";
-
-        try (Connection con = Conexion.obtener();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setInt(1, resCodigo);
-            return ps.executeUpdate() == 1;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+        return eliminar(resCodigo);
     }
 
+    /** Reservas cuyo rango de fechas incluye el día de hoy (para el Dashboard). */
     public int contarDelDia() {
         String sql = "SELECT COUNT(*) FROM ALQ_RESERVAS " +
-                "WHERE res_estado = 'A' AND TRUNC(SYSDATE) BETWEEN TRUNC(res_fecha_hora_inicio) AND TRUNC(res_fecha_hora_fin)";
+                "WHERE TRUNC(SYSDATE) BETWEEN TRUNC(res_fecha_hora_inicio) AND TRUNC(res_fecha_hora_fin)";
 
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql);

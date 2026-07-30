@@ -4,11 +4,9 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 import ups.bdd.ry_rental_car.ry_rentalcar.HelloApplication;
 import ups.bdd.ry_rental_car.ry_rentalcar.data.repository.UsuarioRepository;
@@ -29,21 +27,11 @@ public class LoginController {
 
     @FXML
     public void initialize() {
-        // Enter en cualquiera de los dos campos dispara el mismo login que el botón
+        // Con setOnAction basta: TextField y PasswordField ya disparan
+        // su onAction automáticamente al presionar Enter. No hace falta
+        // además un setOnKeyPressed (eso duplicaba el login al presionar Enter).
         txtUsuario.setOnAction(this::onIngresarClick);
         txtContrasena.setOnAction(this::onIngresarClick);
-
-        // Alternativa más robusta: capturar ENTER a nivel de tecla presionada
-        txtUsuario.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ENTER) {
-                onIngresarClick(new ActionEvent());
-            }
-        });
-        txtContrasena.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ENTER) {
-                onIngresarClick(new ActionEvent());
-            }
-        });
     }
 
     @FXML
@@ -73,8 +61,6 @@ public class LoginController {
             MainController mainController = loader.getController();
             mainController.setUsuarioLogueado(usuarioLogueado);
 
-            // event.getSource() es null cuando el login se dispara con ENTER (evento sintético),
-            // así que usamos el nodo que sí conocemos (txtContrasena) para obtener el Stage.
             Stage stage = (Stage) txtContrasena.getScene().getWindow();
             stage.setResizable(true);
             stage.getScene().setRoot(root);

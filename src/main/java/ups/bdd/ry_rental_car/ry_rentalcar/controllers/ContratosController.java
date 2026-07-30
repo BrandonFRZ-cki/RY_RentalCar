@@ -9,6 +9,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import ups.bdd.ry_rental_car.ry_rentalcar.data.repository.ContratoRepository;
 import ups.bdd.ry_rental_car.ry_rentalcar.data.repository.ReservaRepository;
 import ups.bdd.ry_rental_car.ry_rentalcar.data.repository.ServicioRepository;
+import ups.bdd.ry_rental_car.ry_rentalcar.data.repository.VehiculoRepository;
 import ups.bdd.ry_rental_car.ry_rentalcar.models.*;
 
 import java.time.LocalDate;
@@ -48,6 +49,7 @@ public class ContratosController implements UsuarioAware {
     private final ServicioRepository servicioRepository = new ServicioRepository();
     private final ContratoRepository contratoRepository = new ContratoRepository();
     private final ReservaRepository reservaRepository = new ReservaRepository();
+    private final VehiculoRepository vehiculoRepository = new VehiculoRepository();
 
     private UsuarioLogueado usuarioLogueado;
     private Contrato contratoSeleccionado;
@@ -197,7 +199,8 @@ public class ContratosController implements UsuarioAware {
             return;
         }
 
-        String numero = "CON-" + System.currentTimeMillis();
+        String numero = "C" + java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyMMddHHmmss"));
 
         Integer codigo = contratoRepository.crearConDetalle(
                 numero,
@@ -217,6 +220,10 @@ public class ContratosController implements UsuarioAware {
             return;
         }
 
+        // Sin con_estado en la BD: el vehículo pasa a "Alquilado" para reflejar
+        // que ya tiene un contrato vigente (veh_estado SÍ existe en el DDL original).
+        vehiculoRepository.actualizarEstado(reserva.getVehiculo().getCodigo(), "A");
+
         cargarContratosDesdeBD();
         limpiarFormulario();
         lblMensaje.setText("Contrato generado correctamente");
@@ -229,9 +236,13 @@ public class ContratosController implements UsuarioAware {
             return;
         }
 
-        if (contratoRepository.anular(contratoSeleccionado.getCodigo())) {
+        int vehCodigo = contratoSeleccionado.getReserva().getVehiculo().getCodigo();
+
+        // Sin con_estado: anular = eliminar el contrato + su detalle, y liberar el vehículo.
+        if (contratoRepository.anular(contratoSeleccionado.getCodigo(), vehCodigo)) {
             cargarContratosDesdeBD();
-            lblMensaje.setText("Contrato anulado");
+            limpiarFormulario();
+            lblMensaje.setText("Contrato anulado y vehículo liberado");
         } else {
             lblMensaje.setText("No se pudo anular el contrato");
         }
