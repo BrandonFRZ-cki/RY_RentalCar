@@ -11,7 +11,9 @@ import ups.bdd.ry_rental_car.ry_rentalcar.data.repository.ReservaRepository;
 import ups.bdd.ry_rental_car.ry_rentalcar.data.repository.VehiculoRepository;
 import ups.bdd.ry_rental_car.ry_rentalcar.models.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 public class ReservasController implements UsuarioAware {
@@ -32,8 +34,11 @@ public class ReservasController implements UsuarioAware {
 
     @FXML private Label lblUsuarioActual;
 
-    @FXML private TextField txtFechaInicio;
-    @FXML private TextField txtFechaFin;
+    @FXML private DatePicker dpFechaInicio;
+    @FXML private DatePicker dpFechaFin;
+
+    @FXML private ComboBox<String> cmbHoraInicio;
+    @FXML private ComboBox<String> cmbHoraFin;
 
     @FXML private Label lblEstado;
     @FXML private Label lblMensaje;
@@ -59,6 +64,9 @@ public class ReservasController implements UsuarioAware {
 
     @FXML
     public void initialize() {
+        cargarHoras();
+        configurarFechas();
+
         colCliente.setCellValueFactory(new PropertyValueFactory<>("clienteNombre"));
         colVehiculo.setCellValueFactory(new PropertyValueFactory<>("vehiculoTexto"));
         colFechaInicio.setCellValueFactory(new PropertyValueFactory<>("fechaInicio"));
@@ -128,18 +136,132 @@ public class ReservasController implements UsuarioAware {
 
         txtCedulaCliente.setText(reserva.getCliente().getCedula());
         txtPlacaVehiculo.setText(reserva.getVehiculo().getMatricula());
-        txtFechaInicio.setText(reserva.getFechaInicio());
-        txtFechaFin.setText(reserva.getFechaFin());
+
+        LocalDateTime inicio = LocalDateTime.parse(
+                reserva.getFechaInicio(),
+                FORMATO
+        );
+
+        LocalDateTime fin = LocalDateTime.parse(
+                reserva.getFechaFin(),
+                FORMATO
+        );
+
+        dpFechaInicio.setValue(inicio.toLocalDate());
+        dpFechaFin.setValue(fin.toLocalDate());
+
+        cmbHoraInicio.setValue(
+                inicio.toLocalTime().format(
+                        DateTimeFormatter.ofPattern("HH:mm")
+                )
+        );
+
+        cmbHoraFin.setValue(
+                fin.toLocalTime().format(
+                        DateTimeFormatter.ofPattern("HH:mm")
+                )
+        );
+
         lblEstado.setText(reserva.getEstado());
         lblMensaje.setText("");
+    }
+
+    private void cargarHoras() {
+        cmbHoraInicio.getItems().clear();
+        cmbHoraFin.getItems().clear();
+
+        // Horas cada 30 minutos
+        for (int hora = 0; hora < 24; hora++) {
+            String horaCompleta = String.format("%02d:00", hora);
+            String mediaHora = String.format("%02d:30", hora);
+
+            cmbHoraInicio.getItems().add(horaCompleta);
+            cmbHoraInicio.getItems().add(mediaHora);
+
+            cmbHoraFin.getItems().add(horaCompleta);
+            cmbHoraFin.getItems().add(mediaHora);
+        }
+
+        cmbHoraInicio.setValue("09:00");
+        cmbHoraFin.setValue("18:00");
+    }
+
+    private void configurarFechas() {
+        dpFechaInicio.setDayCellFactory(picker -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate fecha, boolean vacio) {
+                super.updateItem(fecha, vacio);
+
+                setDisable(
+                        vacio ||
+                                fecha.isBefore(LocalDate.now())
+                );
+            }
+        });
+
+        dpFechaFin.setDayCellFactory(picker -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate fecha, boolean vacio) {
+                super.updateItem(fecha, vacio);
+
+                LocalDate fechaInicio = dpFechaInicio.getValue();
+
+                setDisable(
+                        vacio ||
+                                fecha.isBefore(LocalDate.now()) ||
+                                (fechaInicio != null &&
+                                        fecha.isBefore(fechaInicio))
+                );
+            }
+        });
+
+        dpFechaInicio.valueProperty().addListener(
+                (obs, fechaAnterior, nuevaFecha) -> {
+
+                    LocalDate fechaFin = dpFechaFin.getValue();
+
+                    if (nuevaFecha != null &&
+                            fechaFin != null &&
+                            fechaFin.isBefore(nuevaFecha)) {
+
+                        dpFechaFin.setValue(null);
+                    }
+                }
+        );
+    }
+
+    private LocalDateTime obtenerFechaHora(
+            DatePicker datePicker,
+            ComboBox<String> comboHora
+    ) {
+        LocalDate fecha = datePicker.getValue();
+        String horaTexto = comboHora.getValue();
+
+        if (fecha == null ||
+                horaTexto == null ||
+                horaTexto.isBlank()) {
+
+            return null;
+        }
+
+        LocalTime hora = LocalTime.parse(horaTexto);
+
+        return LocalDateTime.of(fecha, hora);
     }
 
     @FXML
     private void guardarReserva() {
         if (!validarCampos()) return;
 
-        LocalDateTime inicio = LocalDateTime.parse(txtFechaInicio.getText().trim(), FORMATO);
-        LocalDateTime fin = LocalDateTime.parse(txtFechaFin.getText().trim(), FORMATO);
+        LocalDateTime inicio = obtenerFechaHora(
+                dpFechaInicio,
+                cmbHoraInicio
+        );
+
+        LocalDateTime fin = obtenerFechaHora(
+                dpFechaFin,
+                cmbHoraFin
+        );
 
         if (reservaRepository.tieneCruceDeFechas(vehiculoEncontrado.getCodigo(), inicio, fin)) {
             lblMensaje.setText("Ese vehículo ya está reservado/alquilado en esas fechas");
@@ -206,19 +328,27 @@ public class ReservasController implements UsuarioAware {
             lblMensaje.setText("Busque un vehículo por placa que esté disponible");
             return false;
         }
-        if (txtFechaInicio.getText().isBlank() || txtFechaFin.getText().isBlank()) {
-            lblMensaje.setText("Complete fecha de inicio y fin (formato: 2026-08-10T09:00)");
+        LocalDateTime inicio = obtenerFechaHora(
+                dpFechaInicio,
+                cmbHoraInicio
+        );
+
+        LocalDateTime fin = obtenerFechaHora(
+                dpFechaFin,
+                cmbHoraFin
+        );
+
+        if (inicio == null || fin == null) {
+            lblMensaje.setText(
+                    "Seleccione la fecha y hora de inicio y fin"
+            );
             return false;
         }
-        try {
-            LocalDateTime inicio = LocalDateTime.parse(txtFechaInicio.getText().trim(), FORMATO);
-            LocalDateTime fin = LocalDateTime.parse(txtFechaFin.getText().trim(), FORMATO);
-            if (!fin.isAfter(inicio)) {
-                lblMensaje.setText("La fecha final debe ser posterior a la inicial");
-                return false;
-            }
-        } catch (Exception e) {
-            lblMensaje.setText("Formato de fecha inválido. Use: 2026-08-10T09:00");
+
+        if (!fin.isAfter(inicio)) {
+            lblMensaje.setText(
+                    "La fecha y hora final debe ser posterior a la inicial"
+            );
             return false;
         }
         return true;
@@ -229,8 +359,11 @@ public class ReservasController implements UsuarioAware {
         txtPlacaVehiculo.clear();
         lblClienteEncontrado.setText("");
         lblVehiculoEncontrado.setText("");
-        txtFechaInicio.clear();
-        txtFechaFin.clear();
+        dpFechaInicio.setValue(null);
+        dpFechaFin.setValue(null);
+
+        cmbHoraInicio.setValue("09:00");
+        cmbHoraFin.setValue("18:00");
         lblEstado.setText("Activa");
         clienteEncontrado = null;
         vehiculoEncontrado = null;

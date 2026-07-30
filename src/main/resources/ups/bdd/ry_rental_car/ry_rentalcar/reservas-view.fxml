@@ -9,6 +9,8 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.ComboBox?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="ups.bdd.ry_rental_car.ry_rentalcar.controllers.ReservasController"
@@ -59,15 +61,41 @@
             <Label fx:id="lblUsuarioActual" styleClass="field-label"/>
 
             <HBox spacing="25">
+
                 <VBox spacing="5">
-                    <Label text="Fecha/hora inicio:" styleClass="field-label"/>
-                    <TextField fx:id="txtFechaInicio" promptText="2026-08-10T09:00" prefWidth="160" prefHeight="34"/>
+                    <Label text="Fecha/hora inicio:"
+                           styleClass="field-label"/>
+
+                    <HBox spacing="6">
+                        <DatePicker fx:id="dpFechaInicio"
+                                    promptText="Fecha"
+                                    prefWidth="135"
+                                    prefHeight="34"/>
+
+                        <ComboBox fx:id="cmbHoraInicio"
+                                  promptText="Hora"
+                                  prefWidth="90"
+                                  prefHeight="34"/>
+                    </HBox>
                 </VBox>
 
                 <VBox spacing="5">
-                    <Label text="Fecha/hora fin:" styleClass="field-label"/>
-                    <TextField fx:id="txtFechaFin" promptText="2026-08-12T18:00" prefWidth="160" prefHeight="34"/>
+                    <Label text="Fecha/hora fin:"
+                           styleClass="field-label"/>
+
+                    <HBox spacing="6">
+                        <DatePicker fx:id="dpFechaFin"
+                                    promptText="Fecha"
+                                    prefWidth="135"
+                                    prefHeight="34"/>
+
+                        <ComboBox fx:id="cmbHoraFin"
+                                  promptText="Hora"
+                                  prefWidth="90"
+                                  prefHeight="34"/>
+                    </HBox>
                 </VBox>
+
             </HBox>
 
             <Label text="Estado:" styleClass="field-label"/>
