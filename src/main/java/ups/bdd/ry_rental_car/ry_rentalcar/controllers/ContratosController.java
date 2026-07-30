@@ -135,23 +135,75 @@ public class ContratosController implements UsuarioAware {
     @FXML
     private void agregarServicioAlDetalle() {
         ServicioAdicional servicio = cmbServicio.getValue();
+
         if (servicio == null || txtCantidadServicio.getText().isBlank()) {
             lblMensaje.setText("Seleccione un servicio y una cantidad");
             return;
         }
 
         int cantidad;
+
         try {
-            cantidad = Integer.parseInt(txtCantidadServicio.getText().trim());
-            if (cantidad <= 0) throw new NumberFormatException();
+            cantidad = Integer.parseInt(
+                    txtCantidadServicio.getText().trim()
+            );
+
+            if (cantidad <= 0) {
+                throw new NumberFormatException();
+            }
+
         } catch (NumberFormatException e) {
             lblMensaje.setText("Cantidad inválida");
             return;
         }
 
-        detalleActual.add(new DetalleServicio(servicio, cantidad));
+        DetalleServicio detalleExistente = null;
+
+        // Buscar si el servicio ya está agregado
+        for (DetalleServicio detalle : detalleActual) {
+            if (detalle.getServicioNombre()
+                    .equalsIgnoreCase(servicio.getNombre())) {
+
+                detalleExistente = detalle;
+                break;
+            }
+        }
+
+        if (detalleExistente != null) {
+
+            int nuevaCantidad =
+                    detalleExistente.getCantidad() + cantidad;
+
+            int posicion =
+                    detalleActual.indexOf(detalleExistente);
+
+            DetalleServicio detalleActualizado =
+                    new DetalleServicio(
+                            servicio,
+                            nuevaCantidad
+                    );
+
+            detalleActual.set(
+                    posicion,
+                    detalleActualizado
+            );
+
+        } else {
+
+            detalleActual.add(
+                    new DetalleServicio(
+                            servicio,
+                            cantidad
+                    )
+            );
+        }
+
+        tblDetalleServicios.refresh();
+
         txtCantidadServicio.clear();
         cmbServicio.setValue(null);
+        lblMensaje.setText("");
+
         recalcularTotales(cmbReserva.getValue());
     }
 
